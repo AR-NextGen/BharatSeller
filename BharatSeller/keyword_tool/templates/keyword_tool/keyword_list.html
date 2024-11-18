@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyword List</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'keyword_tool/styles.css' %}">
+</head>
+<body>
+    <h1>Keyword List</h1>
+
+    <!-- Sorting Links -->
+    <div>
+        <a href="?sort=name">Sort by Name</a> |
+        <a href="?sort=search_volume">Sort by Search Volume</a> |
+        <a href="?sort=difficulty">Sort by Difficulty</a>
+    </div>
+
+    <!-- Search Form -->
+    <form method="GET" action="">
+        <input type="text" name="q" placeholder="Search keywords..." value="{{ request.GET.q }}">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if not_found_message %}
+        <p>{{ not_found_message }}</p>
+    {% else %}
+        <!-- Keyword List -->
+        <ul>
+            {% for keyword in page_obj %}
+                <li>{{ keyword.name }} - {{ keyword.search_volume }} - {{ keyword.difficulty }}
+                    <a href="{% url 'keyword_detail' keyword.id %}">View</a> |
+                    <a href="{% url 'edit_keyword' keyword.id %}">Edit</a> |
+                    <a href="{% url 'delete_keyword' keyword.id %}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+            {% endif %}
+
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <p><a href="{% url 'add_keyword' %}">Add New Keyword</a></p>
+</body>
+</html>

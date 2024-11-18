@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Product Search</h1>
+
+<button id="toggle-search" class="btn btn-secondary mb-3">
+    {% if is_advanced %}
+        Switch to Simplified Search
+    {% else %}
+        Switch to Advanced Search
+    {% endif %}
+</button>
+
+<form method="get" id="product-search-form" class="form-group" style="display: {% if is_advanced %}none{% endif %};">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select name="category" id="category" class="form-control" data-toggle="tooltip" title="Select the product category">
+                    {% for value, label in simplified_form.fields.category.choices %}
+                        <option value="{{ value }}" {% if simplified_form.category.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="improvements">Improvements</label>
+                <input type="text" name="improvements" id="improvements" class="form-control" data-toggle="tooltip" title="Enter the improvements">
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<form method="get" id="advanced-product-search-form" class="form-group" style="display: {% if is_advanced %}block{% else %}none{% endif %};">
+    <input type="hidden" name="advanced" value="1">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select name="category" id="category" class="form-control" data-toggle="tooltip" title="Select the product category">
+                    {% for value, label in advanced_form.fields.category.choices %}
+                        <option value="{{ value }}" {% if advanced_form.category.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="improvements">Improvements</label>
+                <input type="text" name="improvements" id="improvements" class="form-control" data-toggle="tooltip" title="Enter the improvements">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="min_price">Min Price</label>
+                <input type="number" name="min_price" id="min_price" class="form-control" data-toggle="tooltip" title="Enter the minimum price">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="max_price">Max Price</label>
+                <input type="number" name="max_price" id="max_price" class="form-control" data-toggle="tooltip" title="Enter the maximum price">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="min_rating">Min Rating</label>
+                <input type="number" step="0.01" name="min_rating" id="min_rating" class="form-control" data-toggle="tooltip" title="Enter the minimum rating">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="max_rating">Max Rating</label>
+                <input type="number" step="0.01" name="max_rating" id="max_rating" class="form-control" data-toggle="tooltip" title="Enter the maximum rating">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="min_reviews">Min Reviews</label>
+                <input type="number" name="min_reviews" id="min_reviews" class="form-control" data-toggle="tooltip" title="Enter the minimum number of reviews">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="max_reviews">Max Reviews</label>
+                <input type="number" name="max_reviews" id="max_reviews" class="form-control" data-toggle="tooltip" title="Enter the maximum number of reviews">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="min_sales">Min Sales</label>
+                <input type="number" name="min_sales" id="min_sales" class="form-control" data-toggle="tooltip" title="Enter the minimum number of sales">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="max_sales">Max Sales</label>
+                <input type="number" name="max_sales" id="max_sales" class="form-control" data-toggle="tooltip" title="Enter the maximum number of sales">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="sort_by">Sort By</label>
+                <select name="sort_by" id="sort_by" class="form-control">
+                    <option value="">Select</option>
+                    <option value="category">Category</option>
+                    <option value="price">Price</option>
+                    <option value="rating">Rating</option>
+                    <option value="reviews">Reviews</option>
+                    <option value="sales">Sales</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<div id="search-results">
+    {% if products %}
+        <h2>Search Results</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Improvements</th>
+                    <th>Price</th>
+                    <th>Rating</th>
+                    <th>Reviews</th>
+                    <th>Sales</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.category }}</td>
+                        <td>{{ product.improvements }}</td>
+                        <td>{{ product.price }}</td>
+                        <td>{{ product.rating }}</td>
+                        <td>{{ product.reviews }}</td>
+                        <td>{{ product.sales }}</td>
+                        <td><button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#productModal{{ product.id }}">View</button></td>
+                    </tr>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="productModal{{ product.id }}" tabindex="-1" role="dialog" aria-labelledby="productModalLabel{{ product.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="productModalLabel{{ product.id }}">{{ product.category }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p><strong>Category:</strong> {{ product.category }}</p>
+                                    <p><strong>Improvements:</strong> {{ product.improvements }}</p>
+                                    <p><strong>Price:</strong> {{ product.price }}</p>
+                                    <p><strong>Rating:</strong> {{ product.rating }}</p>
+                                    <p><strong>Reviews:</strong> {{ product.reviews }}</p>
+                                    <p><strong>Sales:</strong> {{ product.sales }}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if products.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% for num in products.paginator.page_range %}
+                    <li class="page-item {% if products.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endfor %}
+                {% if products.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ products.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<script>
+    document.getElementById('toggle-search').onclick = function() {
+        const advancedForm = document.getElementById('advanced-product-search-form');
+        const simplifiedForm = document.getElementById('product-search-form');
+        if (advancedForm.style.display === 'none') {
+            advancedForm.style.display = 'block';
+            simplifiedForm.style.display = 'none';
+            this.textContent = 'Switch to Simplified Search';
+        } else {
+            advancedForm.style.display = 'none';
+            simplifiedForm.style.display = 'block';
+            this.textContent = 'Switch to Advanced Search';
+        }
+    };
+
+    document.getElementById('product-search-form').onsubmit = function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const queryString = new URLSearchParams(formData).toString();
+        fetch("{% url 'product_search' %}?" + queryString, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('search-results');
+            let resultsHtml = '<h2>Search Results</h2><table class="table table-striped"><thead><tr><th>Category</th><th>Improvements</th><th>Price</th><th>Rating</th><th>Reviews</th><th>Sales</th><th>Details</th></tr></thead><tbody>';
+            data.products.forEach(product => {
+                resultsHtml += `<tr>
+                    <td>${product.category}</td>
+                    <td>${product.improvements}</td>
+                    <td>${product.price}</td>
+                    <td>${product.rating}</td>
+                    <td>${product.reviews}</td>
+                    <td>${product.sales}</td>
+                    <td><button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#productModal${product.id}">View</button></td>
+                </tr>`;
+            });
+            resultsHtml += '</tbody></table>';
+            resultsHtml += '<nav aria-label="Page navigation"><ul class="pagination">';
+            if (data.has_previous) {
+                resultsHtml += `<li class="page-item"><a class="page-link" href="?page=${data.current_page - 1}">Previous</a></li>`;
+            }
+            for (let i = 1; i <= data.num_pages; i++) {
+                resultsHtml += `<li class="page-item ${data.current_page === i ? 'active' : ''}"><a class="page-link" href="?page=${i}">${i}</a></li>`;
+            }
+            if (data.has_next) {
+                resultsHtml += `<li class="page-item"><a class="page-link" href="?page=${data.current_page + 1}">Next</a></li>`;
+            }
+            resultsHtml += '</ul></nav>';
+            resultsDiv.innerHTML = resultsHtml;
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    document.getElementById('advanced-product-search-form').onsubmit = function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const queryString = new URLSearchParams(formData).toString();
+        fetch("{% url 'product_search' %}?" + queryString, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('search-results');
+            let resultsHtml = '<h2>Search Results</h2><table class="table table-striped"><thead><tr><th>Category</th><th>Improvements</th><th>Price</th><th>Rating</th><th>Reviews</th><th>Sales</th><th>Details</th></tr></thead><tbody>';
+            data.products.forEach(product => {
+                resultsHtml += `<tr>
+                    <td>${product.category}</td>
+                    <td>${product.improvements}</td>
+                    <td>${product.price}</td>
+                    <td>${product.rating}</td>
+                    <td>${product.reviews}</td>
+                    <td>${product.sales}</td>
+                    <td><button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#productModal${product.id}">View</button></td>
+                </tr>`;
+            });
+            resultsHtml += '</tbody></table>';
+            resultsHtml += '<nav aria-label="Page navigation"><ul class="pagination">';
+            if (data.has_previous) {
+                resultsHtml += `<li class="page-item"><a class="page-link" href="?page=${data.current_page - 1}">Previous</a></li>`;
+            }
+            for (let i = 1; i <= data.num_pages; i++) {
+                resultsHtml += `<li class="page-item ${data.current_page === i ? 'active' : ''}"><a class="page-link" href="?page=${i}">${i}</a></li>`;
+            }
+            if (data.has_next) {
+                resultsHtml += `<li class="page-item"><a class="page-link" href="?page=${data.current_page + 1}">Next</a></li>`;
+            }
+            resultsHtml += '</ul></nav>';
+            resultsDiv.innerHTML = resultsHtml;
+        })
+        .catch(error => console.error('Error:', error));
+    };
+</script>
+{% endblock %}

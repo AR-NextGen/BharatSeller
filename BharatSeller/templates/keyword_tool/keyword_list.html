@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyword List</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'keyword_tool/styles.css' %}">
+</head>
+<body>
+    <h1>Keyword List</h1>
+
+    <!-- Sorting Links -->
+    <div>
+        <a href="?sort=name">Sort by Name</a> |
+        <a href="?sort=search_volume">Sort by Search Volume</a> |
+        <a href="?sort=difficulty">Sort by Difficulty</a>
+    </div>
+
+    <!-- Search Form -->
+    <form method="GET" action="">
+        <input type="text" name="q" placeholder="Search keywords..." value="{{ request.GET.q }}">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if not_found_message %}
+        <p>{{ not_found_message }}</p>
+    {% endif %}
+
+    <!-- Keyword List -->
+    {% for keyword in page_obj %}
+        <div>
+            <span class="{% if keyword.favorite %}favorite{% endif %}">
+                {{ keyword.name }} - {{ keyword.search_volume }} - {{ keyword.difficulty }}
+            </span>
+            <a href="{% url 'toggle_favorite' keyword.id %}">
+                {% if keyword.favorite %}
+                    Unfavorite
+                {% else %}
+                    Favorite
+                {% endif %}
+            </a>
+            <a href="{% url 'edit_keyword' keyword.id %}">Edit</a>
+            <a href="{% url 'delete_keyword' keyword.id %}">Delete</a>
+        </div>
+    {% endfor %}
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo; Previous</a>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next &raquo;</a>
+        {% endif %}
+    </div>
+
+    <!-- Link to Add New Keyword -->
+    <p><a href="{% url 'add_keyword' %}">Add New Keyword</a></p>
+</body>
+</html>
+
+{% endblock %}
