@@ -11,15 +11,27 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand btn btn-custom-sm btn-light" href="{% url 'keyword_list' %}">Home</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mr-auto">
+        <a class="navbar-brand" href="{% url 'home' %}">BharatSeller</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link btn btn-custom-sm btn-light" href="{% url 'review_analysis' %}">Review Analysis</a>
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'product_search' %}">Product Search</a>
+            </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'keyword_analysis' %}">Keyword Analysis</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn btn-custom-sm btn-light" href="{% url 'product_search' %}">Black Box</a>
+                    <a class="nav-link" href="{% url 'keyword_optimization' %}">Keyword Optimization</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'review_analysis' %}">Review Analysis</a>
             </ul>
         </div>
     </nav>

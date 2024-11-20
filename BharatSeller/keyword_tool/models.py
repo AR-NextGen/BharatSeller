@@ -36,3 +36,27 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+from django.db import models
+
+class KeywordAnalysis(models.Model):
+    keyword = models.CharField(max_length=255)
+    category = models.CharField(max_length=255, choices=[
+        ('Mobiles, Computers', 'Mobiles, Computers'),
+        ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
+        ("Men's Fashion", "Men's Fashion"),
+        ("Women's Fashion", "Women's Fashion"),
+        ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
+        ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
+        ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
+        ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
+        ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
+        ('Books', 'Books'),
+        ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
+    ])
+    search_volume = models.IntegerField()
+    competition = models.DecimalField(max_digits=5, decimal_places=2)
+    suggested_bid = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return self.keyword
