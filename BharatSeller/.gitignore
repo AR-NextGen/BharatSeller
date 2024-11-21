@@ -1,0 +1,17 @@
+# Ignore virtual environments
+venv/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Ignore environment files
+.env
+
+# Ignore IDE/Editor settings
+.vscode/
+.idea/
+*.swp
+
+# Ignore Python dependency folders
+site-packages/

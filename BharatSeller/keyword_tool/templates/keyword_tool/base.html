@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Project Title</title>
+    <title>{% block title %}BharatSeller{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'keyword_tool/styles.css' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -20,18 +21,35 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'product_search' %}">Product Search</a>
-            </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'keyword_analysis' %}">Keyword Analysis</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'keyword_optimization' %}">Keyword Optimization</a>
+                    <a class="nav-link" href="{% url 'review_analysis' %}">Review Analysis</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'review_analysis' %}">Review Analysis</a>
+                    <a class="nav-link" href="{% url 'product_search' %}">Product Search</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'keyword_optimization' %}">Keyword Optimization</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link nav-link" style="display: inline; padding: 0; border: none; background: none;">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">Register</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </nav>

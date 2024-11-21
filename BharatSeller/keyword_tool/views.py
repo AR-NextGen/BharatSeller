@@ -66,10 +66,13 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('keyword_list')
+            return redirect('home')
     else:
         form = UserCreationForm()
     return render(request, 'keyword_tool/register.html', {'form': form})
+
+def test_login_template(request):
+    return render(request, 'keyword_tool/login.html')
 
 def review_analysis(request):
     analysis_result = None
@@ -260,3 +263,8 @@ def keyword_optimization(request):
                 optimized_keywords += f'{word}: {freq}\n'
 
     return render(request, 'keyword_tool/keyword_optimization.html', {'form': form, 'optimized_keywords': optimized_keywords})
+
+from django.shortcuts import render
+
+def test_login_template(request):
+    return render(request, 'keyword_tool/login.html')
