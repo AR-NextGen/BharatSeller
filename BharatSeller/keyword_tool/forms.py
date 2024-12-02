@@ -178,3 +178,20 @@ class KeywordOptimizationForm(forms.Form):
     remove_single_letter_words = forms.BooleanField(required=False, initial=False)
     replace_word = forms.CharField(max_length=255, required=False, help_text="Enter a word to replace.")
     replace_with = forms.CharField(max_length=255, required=False, help_text="Enter the replacement word.")
+
+
+# Feild 1 to search ASINs
+from django import forms
+
+class CerebroForm(forms.Form):
+    asins = forms.CharField(
+        max_length=50,  # 5 ASINs * 10 characters each
+        required=True,
+        label='',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter ASINs',
+            'class': 'form-control form-control-lg asin-input',  # Add custom class for styling
+            'data-toggle': 'tooltip',
+            'title': 'Enter up to 5 ASINs, separated by commas.'
+        })
+    )

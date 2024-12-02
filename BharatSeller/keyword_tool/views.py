@@ -268,3 +268,40 @@ from django.shortcuts import render
 
 def test_login_template(request):
     return render(request, 'keyword_tool/login.html')
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from .forms import CerebroForm
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'keyword_tool/register.html', {'form': form})
+
+def cerebro(request):
+    if request.method == 'POST':
+        form = CerebroForm(request.POST)
+        if form.is_valid():
+            # Process the ASINs and get the keywords
+            asins = form.cleaned_data['asins'].split(',')
+            keywords = get_keywords(asins)  # Replace with actual function to get keywords
+            return render(request, 'keyword_tool/cerebro_results.html', {'form': form, 'keywords': keywords})
+    else:
+        form = CerebroForm()
+    return render(request, 'keyword_tool/cerebro.html', {'form': form})
+
+def get_keywords(asins):
+    # Dummy data for demonstration purposes
+    keywords = [
+        {'keyword': 'example1', 'sales': 100, 'volume': 1000, 'ppc_bid': 1.5, 'sponsored_asins': 10, 'competing_products': 100},
+        {'keyword': 'example2', 'sales': 200, 'volume': 2000, 'ppc_bid': 2.5, 'sponsored_asins': 20, 'competing_products': 200},
+        # Add more dummy data as needed
+    ]
+    return keywords

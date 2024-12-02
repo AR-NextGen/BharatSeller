@@ -1,0 +1,77 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Get Keywords</button>
+            </form>
+            <h2 class="mt-5">Results</h2>
+            <button class="btn btn-secondary float-right" type="button" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm">
+                Filter
+            </button>
+            <div class="collapse" id="filterForm">
+                <div class="card card-body mt-3">
+                    <form method="get">
+                        <div class="form-row">
+                            <div class="form-group col-md-2">
+                                <label for="keyword">Keyword</label>
+                                <input type="text" class="form-control" id="keyword" name="keyword">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="sales">Sales</label>
+                                <input type="number" class="form-control" id="sales" name="sales">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="volume">Search Volume</label>
+                                <input type="number" class="form-control" id="volume" name="volume">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="ppc_bid">Suggested PPC Bid</label>
+                                <input type="number" class="form-control" id="ppc_bid" name="ppc_bid">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="sponsored_asins">Sponsored ASINs</label>
+                                <input type="number" class="form-control" id="sponsored_asins" name="sponsored_asins">
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label for="competing_products">Competing Products</label>
+                                <input type="number" class="form-control" id="competing_products" name="competing_products">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Keyword</th>
+                        <th>Sales</th>
+                        <th>Search Volume</th>
+                        <th>Suggested PPC Bid</th>
+                        <th>Sponsored ASINs</th>
+                        <th>Competing Products</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for keyword in keywords %}
+                    <tr>
+                        <td>{{ keyword.keyword }}</td>
+                        <td>{{ keyword.sales }}</td>
+                        <td>{{ keyword.volume }}</td>
+                        <td>{{ keyword.ppc_bid }}</td>
+                        <td>{{ keyword.sponsored_asins }}</td>
+                        <td>{{ keyword.competing_products }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

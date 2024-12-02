@@ -1,0 +1,21 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <form method="post" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group mb-2 mr-2 flex-grow-1">
+                    {{ form.asins }}
+                    <button type="button" class="btn btn-info btn-sm ml-2 rounded-circle" data-toggle="tooltip" data-placement="right" title="Enter up to 5 ASINs, separated by commas.">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2 ml-2">Get Keywords</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
