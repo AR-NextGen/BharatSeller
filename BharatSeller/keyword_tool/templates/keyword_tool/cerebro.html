@@ -18,4 +18,33 @@
         </div>
     </div>
 </div>
+{% if keywords %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2 class="text-center">Keywords</h2>
+            <form id="keywords-form">
+                <div class="form-group">
+                    <div class="list-group">
+                        {% for keyword in keywords %}
+                        <div class="list-group-item">
+                            <input type="checkbox" name="keywords" value="{{ keyword }}" id="keyword-{{ forloop.counter }}">
+                            <label for="keyword-{{ forloop.counter }}">{{ keyword }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" id="export-to-keyword-optimization">Export to Keyword Optimization Tool</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script>
+    document.getElementById('export-to-keyword-optimization').addEventListener('click', function() {
+        // Get the selected keywords
+        const selectedKeywords = Array.from(document.querySelectorAll('input[name="keywords"]:checked')).map(checkbox => checkbox.value);
+        // Redirect to the Keyword Optimization tool with the selected keywords
+        window.location.href = `{% url 'keyword_optimization' %}?keywords=${encodeURIComponent(selectedKeywords.join('\n'))}`;
+    });
+</script>
 {% endblock %}

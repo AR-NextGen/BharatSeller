@@ -88,3 +88,21 @@ a:hover {
     align-items: center;
     justify-content: center;
 }
+
+.card {
+    margin-bottom: 20px;
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#keywords {
+    height: 300px;  /* Adjust the height as needed */
+}

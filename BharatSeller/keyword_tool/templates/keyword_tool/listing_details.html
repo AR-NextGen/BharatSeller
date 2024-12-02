@@ -1,0 +1,15 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Listing Details</h1>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <p><strong>Title:</strong> {{ listing.title }}</p>
+            <p><strong>Description:</strong> {{ listing.description }}</p>
+            <p><strong>Price:</strong> ${{ listing.price }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

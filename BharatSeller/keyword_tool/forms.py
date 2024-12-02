@@ -195,3 +195,46 @@ class CerebroForm(forms.Form):
             'title': 'Enter up to 5 ASINs, separated by commas.'
         })
     )
+
+from django import forms
+
+class FetchListingForm(forms.Form):
+    asin = forms.CharField(
+        max_length=10,
+        required=True,
+        label='ASIN',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter ASIN',
+            'class': 'form-control'
+        })
+    )
+
+class CreateListingForm(forms.Form):
+    title = forms.CharField(
+        max_length=255,
+        required=True,
+        label='Title',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter Title',
+            'class': 'form-control'
+        })
+    )
+    description = forms.CharField(
+        required=True,
+        label='Description',
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Enter Description',
+            'class': 'form-control',
+            'rows': 3
+        })
+    )
+    price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=True,
+        label='Price',
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Enter Price',
+            'class': 'form-control'
+        })
+    )

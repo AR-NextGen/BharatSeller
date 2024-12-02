@@ -5,73 +5,139 @@
 <div class="container mt-5">
     <div class="row mt-4">
         <div class="col-md-12">
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary">Get Keywords</button>
-            </form>
-            <h2 class="mt-5">Results</h2>
-            <button class="btn btn-secondary float-right" type="button" data-toggle="collapse" data-target="#filterForm" aria-expanded="false" aria-controls="filterForm">
-                Filter
-            </button>
-            <div class="collapse" id="filterForm">
-                <div class="card card-body mt-3">
-                    <form method="get">
-                        <div class="form-row">
-                            <div class="form-group col-md-2">
-                                <label for="keyword">Keyword</label>
-                                <input type="text" class="form-control" id="keyword" name="keyword">
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="sales">Sales</label>
-                                <input type="number" class="form-control" id="sales" name="sales">
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="volume">Search Volume</label>
-                                <input type="number" class="form-control" id="volume" name="volume">
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="ppc_bid">Suggested PPC Bid</label>
-                                <input type="number" class="form-control" id="ppc_bid" name="ppc_bid">
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="sponsored_asins">Sponsored ASINs</label>
-                                <input type="number" class="form-control" id="sponsored_asins" name="sponsored_asins">
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="competing_products">Competing Products</label>
-                                <input type="number" class="form-control" id="competing_products" name="competing_products">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    </form>
+            <h2 class="text-center">Cerebro Results</h2>
+            <!-- Add a button to toggle the filter form -->
+            <button type="button" class="btn btn-secondary mb-4" id="toggle-filters">Show Filters</button>
+            <!-- Add the filter form -->
+            <form id="filter-form" class="mb-4" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="min-sales">Min Sales</label>
+                        <input type="number" class="form-control form-control-sm" id="min-sales" name="min_sales" placeholder="Min Sales">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="max-sales">Max Sales</label>
+                        <input type="number" class="form-control form-control-sm" id="max-sales" name="max_sales" placeholder="Max Sales">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="min-volume">Min Volume</label>
+                        <input type="number" class="form-control form-control-sm" id="min-volume" name="min_volume" placeholder="Min Volume">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="max-volume">Max Volume</label>
+                        <input type="number" class="form-control form-control-sm" id="max-volume" name="max_volume" placeholder="Max Volume">
+                    </div>
                 </div>
-            </div>
-            <table class="table table-bordered mt-3">
-                <thead>
-                    <tr>
-                        <th>Keyword</th>
-                        <th>Sales</th>
-                        <th>Search Volume</th>
-                        <th>Suggested PPC Bid</th>
-                        <th>Sponsored ASINs</th>
-                        <th>Competing Products</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for keyword in keywords %}
-                    <tr>
-                        <td>{{ keyword.keyword }}</td>
-                        <td>{{ keyword.sales }}</td>
-                        <td>{{ keyword.volume }}</td>
-                        <td>{{ keyword.ppc_bid }}</td>
-                        <td>{{ keyword.sponsored_asins }}</td>
-                        <td>{{ keyword.competing_products }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="min-ppc-bid">Min PPC Bid</label>
+                        <input type="number" class="form-control form-control-sm" id="min-ppc-bid" name="min_ppc_bid" placeholder="Min PPC Bid">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="max-ppc-bid">Max PPC Bid</label>
+                        <input type="number" class="form-control form-control-sm" id="max-ppc-bid" name="max_ppc_bid" placeholder="Max PPC Bid">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="min-sponsored-asins">Min Sponsored ASINs</label>
+                        <input type="number" class="form-control form-control-sm" id="min-sponsored-asins" name="min_sponsored_asins" placeholder="Min Sponsored ASINs">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="max-sponsored-asins">Max Sponsored ASINs</label>
+                        <input type="number" class="form-control form-control-sm" id="max-sponsored-asins" name="max_sponsored_asins" placeholder="Max Sponsored ASINs">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="min-competing-products">Min Competing Products</label>
+                        <input type="number" class="form-control form-control-sm" id="min-competing-products" name="min_competing_products" placeholder="Min Competing Products">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="max-competing-products">Max Competing Products</label>
+                        <input type="number" class="form-control form-control-sm" id="max-competing-products" name="max_competing_products" placeholder="Max Competing Products">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="apply-filters">Apply Filters</button>
+            </form>
+            <form id="keywords-form">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Keyword</th>
+                            <th>Sales</th>
+                            <th>Search Volume</th>
+                            <th>Suggested PPC Bid</th>
+                            <th>Sponsored ASINs</th>
+                            <th>Competing Products</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keywords-table-body">
+                        {% for keyword in keywords %}
+                        <tr>
+                            <td><input type="checkbox" name="keywords" value="{{ keyword.keyword }}" id="keyword-{{ forloop.counter }}"></td>
+                            <td>{{ keyword.keyword }}</td>
+                            <td>{{ keyword.sales }}</td>
+                            <td>{{ keyword.volume }}</td>
+                            <td>{{ keyword.ppc_bid }}</td>
+                            <td>{{ keyword.sponsored_asins }}</td>
+                            <td>{{ keyword.competing_products }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-primary btn-sm" id="export-to-keyword-optimization">Export to Keyword Optimization Tool</button>
+            </form>
         </div>
     </div>
 </div>
+<script>
+    document.getElementById('toggle-filters').addEventListener('click', function() {
+        const filterForm = document.getElementById('filter-form');
+        filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+        this.textContent = filterForm.style.display === 'none' ? 'Show Filters' : 'Hide Filters';
+    });
+
+    document.getElementById('apply-filters').addEventListener('click', function() {
+        const minSales = document.getElementById('min-sales').value;
+        const maxSales = document.getElementById('max-sales').value;
+        const minVolume = document.getElementById('min-volume').value;
+        const maxVolume = document.getElementById('max-volume').value;
+        const minPpcBid = document.getElementById('min-ppc-bid').value;
+        const maxPpcBid = document.getElementById('max-ppc-bid').value;
+        const minSponsoredAsins = document.getElementById('min-sponsored-asins').value;
+        const maxSponsoredAsins = document.getElementById('max-sponsored-asins').value;
+        const minCompetingProducts = document.getElementById('min-competing-products').value;
+        const maxCompetingProducts = document.getElementById('max-competing-products').value;
+
+        const rows = document.querySelectorAll('#keywords-table-body tr');
+        rows.forEach(row => {
+            const sales = parseInt(row.children[2].innerText);
+            const volume = parseInt(row.children[3].innerText);
+            const ppcBid = parseFloat(row.children[4].innerText);
+            const sponsoredAsins = parseInt(row.children[5].innerText);
+            const competingProducts = parseInt(row.children[6].innerText);
+
+            let showRow = true;
+            if (minSales && sales < minSales) showRow = false;
+            if (maxSales && sales > maxSales) showRow = false;
+            if (minVolume && volume < minVolume) showRow = false;
+            if (maxVolume && volume > maxVolume) showRow = false;
+            if (minPpcBid && ppcBid < minPpcBid) showRow = false;
+            if (maxPpcBid && ppcBid > maxPpcBid) showRow = false;
+            if (minSponsoredAsins && sponsoredAsins < minSponsoredAsins) showRow = false;
+            if (maxSponsoredAsins && sponsoredAsins > maxSponsoredAsins) showRow = false;
+            if (minCompetingProducts && competingProducts < minCompetingProducts) showRow = false;
+            if (maxCompetingProducts && competingProducts > maxCompetingProducts) showRow = false;
+
+            row.style.display = showRow ? '' : 'none';
+        });
+    });
+
+    document.getElementById('export-to-keyword-optimization').addEventListener('click', function() {
+        // Get the selected keywords
+        const selectedKeywords = Array.from(document.querySelectorAll('input[name="keywords"]:checked')).map(checkbox => checkbox.value);
+        // Redirect to the Keyword Optimization tool with the selected keywords
+        window.location.href = `{% url 'keyword_optimization' %}?keywords=${encodeURIComponent(selectedKeywords.join('\n'))}`;
+    });
+</script>
 {% endblock %}

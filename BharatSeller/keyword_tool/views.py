@@ -272,7 +272,7 @@ def test_login_template(request):
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .forms import CerebroForm
+from .forms import CerebroForm, FetchListingForm, CreateListingForm, KeywordOptimizationForm
 
 def register(request):
     if request.method == 'POST':
@@ -291,11 +291,75 @@ def cerebro(request):
         if form.is_valid():
             # Process the ASINs and get the keywords
             asins = form.cleaned_data['asins'].split(',')
+            asins = [asin.strip() for asin in asins if asin.strip()]  # Clean up whitespace
             keywords = get_keywords(asins)  # Replace with actual function to get keywords
             return render(request, 'keyword_tool/cerebro_results.html', {'form': form, 'keywords': keywords})
     else:
         form = CerebroForm()
     return render(request, 'keyword_tool/cerebro.html', {'form': form})
+
+def listing_maker(request):
+    keywords = request.GET.get('keywords', '')
+    return render(request, 'keyword_tool/listing_maker.html', {'keywords': keywords})
+
+def fetch_listing(request):
+    if request.method == 'POST':
+        form = FetchListingForm(request.POST)
+        if form.is_valid():
+            asin = form.cleaned_data['asin']
+            # Fetch the listing details using the ASIN
+            listing = get_listing_by_asin(asin)  # Replace with actual function to fetch listing
+            return render(request, 'keyword_tool/listing_details.html', {'listing': listing})
+    else:
+        form = FetchListingForm()
+    return render(request, 'keyword_tool/listing_maker.html', {'form': form})
+
+def create_listing(request):
+    if request.method == 'POST':
+        form = CreateListingForm(request.POST)
+        if form.is_valid():
+            # Process the form data and create a new listing
+            title = form.cleaned_data['title']
+            description = form.cleaned_data['description']
+            price = form.cleaned_data['price']
+            # Save the new listing (replace with actual save logic)
+            save_listing(title, description, price)
+            return redirect('listing_maker')
+    else:
+        form = CreateListingForm()
+    return render(request, 'keyword_tool/listing_maker.html', {'form': form})
+
+def keyword_optimization(request):
+    if request.method == 'POST':
+        form = KeywordOptimizationForm(request.POST)
+        if form.is_valid():
+            keywords = form.cleaned_data['keywords']
+            # Process the keywords (e.g., remove duplicates, maintain phrases, etc.)
+            optimized_keywords = process_keywords(keywords, form.cleaned_data)
+            return render(request, 'keyword_tool/keyword_optimization.html', {
+                'form': form,
+                'optimized_keywords': optimized_keywords
+            })
+    else:
+        keywords = request.GET.get('keywords', '')
+        form = KeywordOptimizationForm(initial={'keywords': keywords})
+    return render(request, 'keyword_tool/keyword_optimization.html', {'form': form})
+
+def process_keywords(keywords, options):
+    # Implement the keyword processing logic here
+    # For example, remove duplicates, maintain phrases, remove numbers, convert to lowercase, etc.
+    # This is a placeholder implementation
+    keyword_list = keywords.split('\n')
+    if options.get('remove_duplicates'):
+        keyword_list = list(set(keyword_list))
+    if options.get('maintain_phrases'):
+        # Implement phrase maintenance logic
+        pass
+    if options.get('protect_numbers'):
+        keyword_list = [kw for kw in keyword_list if not any(char.isdigit() for char in kw)]
+    if options.get('convert_to_lowercase'):
+        keyword_list = [kw.lower() for kw in keyword_list]
+    return '\n'.join(keyword_list)
 
 def get_keywords(asins):
     # Dummy data for demonstration purposes

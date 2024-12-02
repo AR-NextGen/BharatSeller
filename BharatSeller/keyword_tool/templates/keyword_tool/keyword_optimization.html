@@ -3,14 +3,13 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center">Keyword Optimization Tool</h1>
     <div class="row mt-4">
         <div class="col-md-6">
             <form method="post" class="form-group">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="keywords">Keywords</label>
-                    {{ form.keywords }}
+                    <textarea class="form-control" id="keywords" name="keywords" rows="10" placeholder="Enter keywords, one per line">{{ form.keywords.value }}</textarea>
                 </div>
                 <div class="form-group">
                     {{ form.remove_duplicates }} Remove Duplicates
@@ -25,37 +24,41 @@
                     {{ form.convert_to_lowercase }} Convert to Lowercase
                 </div>
                 <div class="form-group">
-                    {{ form.add_comma_with_spaces }} Add Comma with Spaces
+                    <button type="submit" class="btn btn-primary">Optimize Keywords</button>
                 </div>
-                <div class="form-group">
-                    {{ form.add_comma_without_spaces }} Add Comma without Spaces
-                </div>
-                <div class="form-group">
-                    {{ form.include_word_frequency }} Include Word Frequency
-                </div>
-                <div class="form-group">
-                    {{ form.remove_common_words }} Remove Common Words
-                </div>
-                <div class="form-group">
-                    {{ form.remove_single_letter_words }} Remove Single Letter Words
-                </div>
-                <div class="form-group">
-                    <label for="replace_word">Replace Word</label>
-                    {{ form.replace_word }}
-                </div>
-                <div class="form-group">
-                    <label for="replace_with">Replace With</label>
-                    {{ form.replace_with }}
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Optimize Keywords</button>
             </form>
         </div>
         <div class="col-md-6">
             {% if optimized_keywords %}
             <h2 class="text-center">Optimized Keywords</h2>
-            <pre>{{ optimized_keywords }}</pre>
+            <pre id="optimized-keywords">{{ optimized_keywords }}</pre>
             {% endif %}
         </div>
     </div>
 </div>
+<div class="container mt-5">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <!-- Add the following lines -->
+            <button type="button" class="btn btn-primary" id="export-to-listing-builder">Export to Listing Builder</button>
+            <!-- End of added lines -->
+            <div id="keyword-optimization-content">
+                <!-- Existing content of the Keyword Optimization Tool -->
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('export-to-listing-builder').addEventListener('click', function() {
+        // Get the optimized keywords from the Keyword Optimization Tool
+        const optimizedKeywords = document.getElementById('optimized-keywords').innerText.trim();
+        // Redirect to the Listing Maker with the keywords
+        window.location.href = `{% url 'listing_maker' %}?keywords=${encodeURIComponent(optimizedKeywords)}`;
+    });
+
+    function getKeywordsFromOptimizationTool() {
+        // Replace with actual logic to get keywords from the Keyword Optimization Tool
+        return ['keyword1', 'keyword2', 'keyword3'];
+    }
+</script>
 {% endblock %}

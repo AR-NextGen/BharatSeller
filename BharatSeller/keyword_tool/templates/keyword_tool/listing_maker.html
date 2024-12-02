@@ -1,0 +1,71 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    Keywords
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'listing_maker' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea class="form-control" id="keywords" name="keywords" rows="10" placeholder="Enter keywords, one per line">{{ keywords }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Keywords</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="btn-group" role="group" aria-label="Listing Maker Options">
+                <button type="button" class="btn btn-primary" id="fetch-existing-listing">Fetch Existing Listing</button>
+                <button type="button" class="btn btn-secondary" id="create-new-listing">Create New Listing</button>
+            </div>
+            <div id="listing-form-container" class="mt-4"></div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('fetch-existing-listing').addEventListener('click', function() {
+        document.getElementById('listing-form-container').innerHTML = `
+            <form method="post" action="{% url 'fetch_listing' %}">
+                <!-- Ensure this line is present -->
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <!-- End of added line -->
+                <div class="form-group">
+                    <label for="asin">Enter ASIN</label>
+                    <input type="text" class="form-control" id="asin" name="asin" placeholder="Enter ASIN">
+                </div>
+                <button type="submit" class="btn btn-primary">Fetch Listing</button>
+            </form>
+        `;
+    });
+
+    document.getElementById('create-new-listing').addEventListener('click', function() {
+        document.getElementById('listing-form-container').innerHTML = `
+            <form method="post" action="{% url 'create_listing' %}">
+                <!-- Ensure this line is present -->
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <!-- End of added line -->
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Enter Title">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter Description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" class="form-control" id="price" name="price" placeholder="Enter Price">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Listing</button>
+            </form>
+        `;
+    });
+</script>
+{% endblock %}
