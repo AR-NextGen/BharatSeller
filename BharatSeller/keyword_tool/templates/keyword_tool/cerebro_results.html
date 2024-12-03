@@ -5,7 +5,6 @@
 <div class="container mt-5">
     <div class="row mt-4">
         <div class="col-md-12">
-            <h2 class="text-center">Cerebro Results</h2>
             <!-- Add a button to toggle the filter form -->
             <button type="button" class="btn btn-secondary mb-4" id="toggle-filters">Show Filters</button>
             <!-- Add the filter form -->
@@ -62,7 +61,7 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Select</th>
+                            <th><input type="checkbox" id="select-all-keywords"></th>
                             <th>Keyword</th>
                             <th>Sales</th>
                             <th>Search Volume</th>
@@ -131,6 +130,11 @@
 
             row.style.display = showRow ? '' : 'none';
         });
+    });
+
+    document.getElementById('select-all-keywords').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[name="keywords"]');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
     });
 
     document.getElementById('export-to-keyword-optimization').addEventListener('click', function() {

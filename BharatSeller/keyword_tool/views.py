@@ -74,54 +74,90 @@ def register(request):
 def test_login_template(request):
     return render(request, 'keyword_tool/login.html')
 
+from django.shortcuts import render
+from .forms import ReviewAnalysisForm
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+import io
+import base64
+
 def review_analysis(request):
     analysis_result = None
     polarity_scores = []
     subjectivity_scores = []
+    error_message = None
 
     if request.method == 'POST':
-        review_text = request.POST.get('review')
-        if review_text:
-            reviews = review_text.split(".")
-            for review in reviews:
-                analysis = TextBlob(review)
-                polarity_scores.append(analysis.sentiment.polarity)
-                subjectivity_scores.append(analysis.sentiment.subjectivity)
+        form = ReviewAnalysisForm(request.POST)
+        if form.is_valid():
+            asin = form.cleaned_data['asin']
+            review_text = form.cleaned_data['review_text']
+            reviews = []
 
-        fig, ax = plt.subplots()
-        ax.hist(polarity_scores, bins=10, color='skyblue', edgecolor='black')
-        ax.set_title('Sentiment Polarity Distribution')
-        ax.set_xlabel('Polarity')
-        ax.set_ylabel('Frequency')
-        
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        histogram_url = base64.b64encode(buf.getvalue()).decode('utf-8')
-        buf.close()
-        plt.close(fig)
+            if asin:
+                # Fetch reviews based on ASIN (placeholder implementation)
+                reviews = get_reviews(asin)
+                if not reviews:
+                    error_message = "Incorrect ASIN. Please enter a correct ASIN."
 
-        subjective_count = sum(1 for score in subjectivity_scores if score >= 0.5)
-        objective_count = len(subjectivity_scores) - subjective_count
-        fig, ax = plt.subplots()
-        ax.pie([subjective_count, objective_count], labels=['Subjective', 'Objective'], autopct='%1.1%f%%', startangle=90)
-        ax.axis('equal')
-        
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        pie_chart_url = base64.b64encode(buf.getvalue()).decode('utf-8')
-        buf.close()
-        plt.close(fig)
+            if review_text:
+                reviews.extend([{'content': review} for review in review_text.split('.') if review.strip()])
 
-        analysis_result = {
-            'histogram_url': histogram_url,
-            'pie_chart_url': pie_chart_url,
-            'polarity_scores': polarity_scores,
-            'subjectivity_scores': subjectivity_scores,
-        }
+            if reviews:
+                for review in reviews:
+                    analysis = TextBlob(review['content'])
+                    polarity_scores.append(analysis.sentiment.polarity)
+                    subjectivity_scores.append(analysis.sentiment.subjectivity)
+
+                fig, ax = plt.subplots()
+                ax.hist(polarity_scores, bins=10, color='skyblue', edgecolor='black')
+                ax.set_title('Sentiment Polarity Distribution')
+                ax.set_xlabel('Polarity')
+                ax.set_ylabel('Frequency')
+                
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                histogram_url = base64.b64encode(buf.getvalue()).decode('utf-8')
+                buf.close()
+                plt.close(fig)
+
+                subjective_count = sum(1 for score in subjectivity_scores if score >= 0.5)
+                objective_count = len(subjectivity_scores) - subjective_count
+                fig, ax = plt.subplots()
+                ax.pie([subjective_count, objective_count], labels=['Subjective', 'Objective'], autopct='%1.1f%%', startangle=90)
+                ax.axis('equal')
+                
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                pie_chart_url = base64.b64encode(buf.getvalue()).decode('utf-8')
+                buf.close()
+                plt.close(fig)
+
+                analysis_result = {
+                    'histogram_url': histogram_url,
+                    'pie_chart_url': pie_chart_url,
+                    'polarity_scores': polarity_scores,
+                    'subjectivity_scores': subjectivity_scores,
+                    'reviews': zip([review['content'] for review in reviews], polarity_scores, subjectivity_scores)
+                }
+    else:
+        form = ReviewAnalysisForm()
         
-    return render(request, 'keyword_tool/review_analysis.html', {'analysis_result': analysis_result})
+    return render(request, 'keyword_tool/review_analysis.html', {'form': form, 'analysis_result': analysis_result, 'error_message': error_message})
+
+def get_reviews(asin):
+    # Implement the logic to fetch reviews for the given ASIN
+    # This is a placeholder implementation
+    if asin == "valid_asin":
+        return [
+            {'title': 'Great product', 'content': 'I really liked this product. It works as expected.', 'rating': 5},
+            {'title': 'Not bad', 'content': 'The product is okay, but could be better.', 'rating': 3},
+            {'title': 'Terrible', 'content': 'I did not like this product at all.', 'rating': 1},
+        ]
+    else:
+        return []
 
 def product_search(request):
     advanced_form = ProductSearchForm(request.GET or None)
@@ -369,3 +405,95 @@ def get_keywords(asins):
         # Add more dummy data as needed
     ]
     return keywords
+
+from django.shortcuts import render
+from .forms import SalesGuesstimatorForm
+
+def sales_guesstimator(request):
+    sales_result = None
+    error_message = None
+
+    if request.method == 'POST':
+        form = SalesGuesstimatorForm(request.POST)
+        if form.is_valid():
+            product_asin = form.cleaned_data['product_asin']
+            category = form.cleaned_data['category']
+            sales_result = analyze_sales(product_asin, category)
+            if not sales_result:
+                error_message = "No sales data found for the given input."
+    else:
+        form = SalesGuesstimatorForm()
+        
+    return render(request, 'keyword_tool/sales_guesstimator.html', {'form': form, 'sales_result': sales_result, 'error_message': error_message})
+
+def analyze_sales(product_asin, category):
+    # Implement the logic to analyze sales for the given product or category
+    # This is a placeholder implementation
+    if product_asin == "valid_asin" or category:
+        monthly_sales = 1000  # Placeholder value
+        average_price = 20  # Placeholder value for average price per unit
+        estimated_revenue = monthly_sales * average_price
+        return {
+            'product_asin': product_asin,
+            'category': category,
+            'monthly_sales': monthly_sales,
+            'estimated_revenue': estimated_revenue
+        }
+    else:
+        return None
+    
+from django.shortcuts import render
+from .forms import ListingBoosterForm
+
+def listing_booster(request):
+    analysis_result = None
+    error_message = None
+    score = 0
+
+    if request.method == 'POST':
+        form = ListingBoosterForm(request.POST)
+        if form.is_valid():
+            asin = form.cleaned_data['asin']
+            url = form.cleaned_data['url']
+            listing = fetch_listing(asin, url)
+            if not listing:
+                error_message = "No listing found for the given input."
+            else:
+                analysis_result, score = analyze_listing(listing)
+                print("Calculated Score:", score)  # Debugging line
+    else:
+        form = ListingBoosterForm()
+        
+    return render(request, 'keyword_tool/listing_booster.html', {'form': form, 'analysis_result': analysis_result, 'error_message': error_message, 'score': score})
+
+def fetch_listing(asin, url):
+    # Implement the logic to fetch the listing based on ASIN or URL
+    # This is a placeholder implementation
+    if asin == "valid_asin" or url:
+        return {
+            'title': 'Sample Product Title',
+            'description': 'Sample product description.',
+            'price': '1000',
+            'reviews': 'Sample reviews.'
+        }
+    else:
+        return None
+
+def analyze_listing(listing):
+    # Implement the AI logic to analyze the listing and show areas of improvement
+    # This is a placeholder implementation
+    improvements = []
+    score = 100
+    if len(listing['title']) < 50:
+        improvements.append("Title is too short. Consider adding more keywords.")
+        score -= 20
+    if len(listing['description']) < 200:
+        improvements.append("Description is too short. Consider adding more details.")
+        score -= 20
+    if int(listing['price']) > 500:
+        improvements.append("Price is too high. Consider reducing the price.")
+        score -= 20
+    if "bad" in listing['reviews']:
+        improvements.append("Reviews contain negative feedback. Consider addressing the issues mentioned.")
+        score -= 20
+    return improvements, score

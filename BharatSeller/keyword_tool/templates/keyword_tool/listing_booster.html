@@ -1,0 +1,121 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <form method="post" class="form-group" id="listing-booster-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.asin }}
+                </div>
+                <div class="form-group">
+                    {{ form.url }}
+                </div>
+                <button type="submit" class="btn btn-primary">Analyze Listing</button>
+            </form>
+        </div>
+    </div>
+    <div id="analysis-results">
+        {% if error_message %}
+        <div class="alert alert-danger" role="alert">
+            {{ error_message }}
+        </div>
+        {% endif %}
+        {% if analysis_result %}
+        <h2>Listing Analysis Results</h2>
+        <div class="card mt-3">
+            <div class="card-body">
+                <ul>
+                    {% for improvement in analysis_result %}
+                    <li>{{ improvement }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h2 class="text-center">Listing Score</h2>
+                <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: center;">
+                    <canvas id="scoreGauge"></canvas>
+                    <p style="font-size: 18px; margin-top: 10px;">
+                        Score: <span id="scoreText">{{ score }}</span>%
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="{% static 'js/chartjs-gauge.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const listingScore = parseFloat("{{ score|default:'0' }}") || 0;
+
+        console.log("Listing Score:", listingScore);
+
+        if (isNaN(listingScore) || listingScore < 0 || listingScore > 100) {
+            console.error("Invalid score value. Ensure 'score' is between 0 and 100.");
+            document.getElementById('scoreGauge').replaceWith(
+                `<p style="color: red; font-size: 18px; text-align: center;">No valid data available</p>`
+            );
+            return;
+        }
+
+        document.getElementById('scoreText').textContent = `${listingScore}%`;
+
+        const ctx = document.getElementById('scoreGauge').getContext('2d');
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'green');
+        gradient.addColorStop(0.5, 'yellow');
+        gradient.addColorStop(1, 'red');
+
+        // Create the gauge chart
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [listingScore, 100 - listingScore],
+                    backgroundColor: [gradient, '#e0e0e0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                circumference: Math.PI,
+                rotation: Math.PI,
+                cutoutPercentage: 70,
+                plugins: {
+                    datalabels: {
+                        display: true,
+                        formatter: function (value, context) {
+                            if (context.dataIndex === 0) {
+                                return `${Math.round(value)}%`;
+                            }
+                            return '';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 20
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1000
+                },
+                responsive: true
+            }
+        });
+    });
+</script>
+{% endblock %}

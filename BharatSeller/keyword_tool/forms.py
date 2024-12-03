@@ -6,6 +6,37 @@ class KeywordForm(forms.ModelForm):
         model = Keyword
         fields = ['name', 'search_volume', 'difficulty']
 
+class ReviewAnalysisForm(forms.Form):
+    asin = forms.CharField(
+        max_length=10,
+        required=True,
+        label='ASIN',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter ASIN',
+            'class': 'form-control'
+        })
+    )        
+
+class ReviewAnalysisForm(forms.Form):
+    asin = forms.CharField(
+        max_length=10,
+        required=True,
+        label='ASIN',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter ASIN',
+            'class': 'form-control'
+        })
+    )
+    review_text = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'placeholder': 'Enter review text',
+            'class': 'form-control',
+            'rows': 5
+        }),
+        label='Review Text',
+        required=False
+    )
+
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -235,6 +266,62 @@ class CreateListingForm(forms.Form):
         label='Price',
         widget=forms.NumberInput(attrs={
             'placeholder': 'Enter Price',
+            'class': 'form-control'
+        })
+    )
+
+from django import forms
+
+class SalesGuesstimatorForm(forms.Form):
+    CATEGORY_CHOICES = [
+        ('Mobiles, Computers', 'Mobiles, Computers'),
+        ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
+        ("Men's Fashion", "Men's Fashion"),
+        ("Women's Fashion", "Women's Fashion"),
+        ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
+        ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
+        ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
+        ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
+        ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
+        ('Books', 'Books'),
+        ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
+    ]
+
+    product_asin = forms.CharField(
+        max_length=10,
+        required=False,
+        label='Product ASIN',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter Product ASIN',
+            'class': 'form-control'
+        })
+    )
+    category = forms.ChoiceField(
+        choices=CATEGORY_CHOICES,
+        required=False,
+        label='Category',
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+from django import forms
+
+class ListingBoosterForm(forms.Form):
+    asin = forms.CharField(
+        max_length=10,
+        required=False,
+        label='ASIN',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Enter ASIN',
+            'class': 'form-control'
+        })
+    )
+    url = forms.URLField(
+        required=False,
+        label='URL',
+        widget=forms.URLInput(attrs={
+            'placeholder': 'Enter URL',
             'class': 'form-control'
         })
     )

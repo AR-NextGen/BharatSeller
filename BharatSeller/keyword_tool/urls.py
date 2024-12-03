@@ -18,6 +18,8 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('cerebro/', views.cerebro, name='cerebro'),
     path('listing_maker/', views.listing_maker, name='listing_maker'),
+    path('listing_booster/', views.listing_booster, name='listing_booster'),
     path('fetch_listing/', views.fetch_listing, name='fetch_listing'),
     path('create_listing/', views.create_listing, name='create_listing'),
+    path('sales_guesstimator/', views.sales_guesstimator, name='sales_guesstimator'),
 ]
