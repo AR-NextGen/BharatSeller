@@ -4,20 +4,32 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row mt-4">
-        <div class="col-md-12">
+        <div class="col-md-8">
             <form method="post" class="form-group" id="listing-booster-form">
                 {% csrf_token %}
                 <div class="form-group">
-                    {{ form.asin }}
+                    {{ form.main_listing }}
                 </div>
                 <div class="form-group">
-                    {{ form.url }}
+                    {{ form.competitor_listing }}
                 </div>
                 <button type="submit" class="btn btn-primary">Analyze Listing</button>
             </form>
         </div>
+        <div class="col-md-4">
+            {% if analysis_result %}
+            <h2 class="text-center">Overall Listing Score</h2>
+            <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: center;">
+                <canvas id="scoreGauge"></canvas>
+                <p style="font-size: 18px; margin-top: 10px;">
+                    Score: <span id="scoreText">{{ score }}</span>%
+                </p>
+                <a href="{% url 'fetch_listing' %}?identifier={{ form.main_listing.value }}" class="btn btn-secondary mt-3">Optimize Listing</a>
+            </div>
+            {% endif %}
+        </div>
     </div>
-    <div id="analysis-results">
+    <div id="analysis-results" class="mt-5">
         {% if error_message %}
         <div class="alert alert-danger" role="alert">
             {{ error_message }}
@@ -27,20 +39,222 @@
         <h2>Listing Analysis Results</h2>
         <div class="card mt-3">
             <div class="card-body">
-                <ul>
-                    {% for improvement in analysis_result %}
-                    <li>{{ improvement }}</li>
-                    {% endfor %}
-                </ul>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Subcategory</th>
+                            <th>Improvements</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">Title</td>
+                            <td>Title Length</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.title.title_length %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="2">{{ scores.title }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Search Volume Keywords</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.title.search_volume_keywords %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">Description</td>
+                            <td>Search Volume Keywords</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.description.search_volume_keywords %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="3">{{ scores.description }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Description Length</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.description.description_length %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Count of Features</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.description.count_of_features %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Pricing</td>
+                            <td></td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.pricing %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ scores.pricing }}%</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">Images</td>
+                            <td>Count of Images</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.images.count_of_images %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="2">{{ scores.images }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Quality of Images</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in analysis_result.images.quality_of_images %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        {% if competitor_analysis_result %}
+        <h2>Competitor Analysis Results</h2>
+        <div class="card mt-3">
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Subcategory</th>
+                            <th>Improvements</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="2">Title</td>
+                            <td>Title Length</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.title.title_length %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="2">{{ competitor_scores.title }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Search Volume Keywords</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.title.search_volume_keywords %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">Description</td>
+                            <td>Search Volume Keywords</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.description.search_volume_keywords %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="3">{{ competitor_scores.description }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Description Length</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.description.description_length %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Count of Features</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.description.count_of_features %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Pricing</td>
+                            <td></td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.pricing %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ competitor_scores.pricing }}%</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">Images</td>
+                            <td>Count of Images</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.images.count_of_images %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td rowspan="2">{{ competitor_scores.images }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Quality of Images</td>
+                            <td>
+                                <ul>
+                                    {% for improvement in competitor_analysis_result.images.quality_of_images %}
+                                    <li>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="row mt-4">
             <div class="col-md-12">
-                <h2 class="text-center">Listing Score</h2>
+                <h2 class="text-center">Overall Competitor Score</h2>
                 <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: center;">
-                    <canvas id="scoreGauge"></canvas>
+                    <canvas id="competitorScoreGauge"></canvas>
                     <p style="font-size: 18px; margin-top: 10px;">
-                        Score: <span id="scoreText">{{ score }}</span>%
+                        Competitor Score: <span id="competitorScoreText">{{ competitor_score }}</span>%
                     </p>
                 </div>
             </div>
@@ -51,71 +265,93 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 <script src="{% static 'js/chartjs-gauge.min.js' %}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const listingScore = parseFloat("{{ score|default:'0' }}") || 0;
+    document.addEventListener('DOMContentLoaded', function() {
+        const listingScore = parseFloat("{{ score|default:'0' }}");
+        const competitorScore = parseFloat("{{ competitor_score|default:'0' }}");
 
-        console.log("Listing Score:", listingScore);
-
-        if (isNaN(listingScore) || listingScore < 0 || listingScore > 100) {
-            console.error("Invalid score value. Ensure 'score' is between 0 and 100.");
-            document.getElementById('scoreGauge').replaceWith(
-                `<p style="color: red; font-size: 18px; text-align: center;">No valid data available</p>`
-            );
-            return;
+        if (listingScore > 0) {
+            const ctx = document.getElementById('scoreGauge').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [listingScore, 100 - listingScore],
+                        backgroundColor: ['green', 'red'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: Math.PI,
+                    rotation: Math.PI,
+                    cutoutPercentage: 70,
+                    plugins: {
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                if (context.dataIndex === 0) {
+                                    return value + '%';
+                                } else {
+                                    return '';
+                                }
+                            },
+                            color: 'black',
+                            font: {
+                                weight: 'bold',
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            });
         }
 
-        document.getElementById('scoreText').textContent = `${listingScore}%`;
-
-        const ctx = document.getElementById('scoreGauge').getContext('2d');
-
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'green');
-        gradient.addColorStop(0.5, 'yellow');
-        gradient.addColorStop(1, 'red');
-
-        // Create the gauge chart
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [listingScore, 100 - listingScore],
-                    backgroundColor: [gradient, '#e0e0e0'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                circumference: Math.PI,
-                rotation: Math.PI,
-                cutoutPercentage: 70,
-                plugins: {
-                    datalabels: {
-                        display: true,
-                        formatter: function (value, context) {
-                            if (context.dataIndex === 0) {
-                                return `${Math.round(value)}%`;
+        if (competitorScore > 0) {
+            const competitorCtx = document.getElementById('competitorScoreGauge').getContext('2d');
+            new Chart(competitorCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [competitorScore, 100 - competitorScore],
+                        backgroundColor: ['green', 'red'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: Math.PI,
+                    rotation: Math.PI,
+                    cutoutPercentage: 70,
+                    plugins: {
+                        datalabels: {
+                            display: true,
+                            formatter: function(value, context) {
+                                if (context.dataIndex === 0) {
+                                    return value + '%';
+                                } else {
+                                    return '';
+                                }
+                            },
+                            color: 'black',
+                            font: {
+                                weight: 'bold',
+                                size: 16
                             }
-                            return '';
                         },
-                        color: '#333',
-                        font: {
-                            weight: 'bold',
-                            size: 20
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
                         }
-                    },
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        enabled: false
                     }
-                },
-                animation: {
-                    animateRotate: true,
-                    duration: 1000
-                },
-                responsive: true
-            }
-        });
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

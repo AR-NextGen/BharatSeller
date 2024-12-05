@@ -308,20 +308,15 @@ class SalesGuesstimatorForm(forms.Form):
 from django import forms
 
 class ListingBoosterForm(forms.Form):
-    asin = forms.CharField(
-        max_length=10,
-        required=False,
-        label='ASIN',
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Enter ASIN',
-            'class': 'form-control'
-        })
+    main_listing = forms.CharField(
+        label='Main Listing', 
+        max_length=255, 
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL'})  # Add placeholder
     )
-    url = forms.URLField(
+    competitor_listing = forms.CharField(
+        label='Competitor Listing', 
+        max_length=255, 
         required=False,
-        label='URL',
-        widget=forms.URLInput(attrs={
-            'placeholder': 'Enter URL',
-            'class': 'form-control'
-        })
+        widget=forms.TextInput(attrs={'placeholder': "Enter Competitor's ASIN or URL"})  # Add placeholder
     )

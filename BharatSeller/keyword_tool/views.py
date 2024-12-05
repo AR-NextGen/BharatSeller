@@ -209,6 +209,11 @@ def product_search(request):
 def home(request):
     return render(request, 'keyword_tool/home.html')
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from .forms import KeywordAnalysisForm
+from .models import KeywordAnalysis
+
 def keyword_analysis(request):
     form = KeywordAnalysisForm(request.GET or None)
     results = None
@@ -217,9 +222,13 @@ def keyword_analysis(request):
         keyword = form.cleaned_data['keyword']
         category = form.cleaned_data['category']
         results = KeywordAnalysis.objects.filter(keyword__icontains=keyword, category=category)
+        print("Results:", results)  # Debugging line
+        for result in results:
+            print("Avg. Monthly Sales:", result.avg_monthly_sales)  # Debugging line
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'results': list(results.values())})
+        return JsonResponse({
+            'results': list(results.values('keyword', 'category', 'search_volume', 'avg_monthly_sales', 'competition', 'suggested_bid'))})
     return render(request, 'keyword_tool/keyword_analysis.html', {'form': form, 'results': results})
 
 def keyword_list(request):
@@ -346,6 +355,10 @@ def fetch_listing(request):
             # Fetch the listing details using the ASIN
             listing = get_listing_by_asin(asin)  # Replace with actual function to fetch listing
             return render(request, 'keyword_tool/listing_details.html', {'listing': listing})
+    elif request.method == 'GET' and 'identifier' in request.GET:
+        identifier = request.GET['identifier']
+        form = FetchListingForm(initial={'asin': identifier})
+        return render(request, 'keyword_tool/listing_maker.html', {'form': form})
     else:
         form = FetchListingForm()
     return render(request, 'keyword_tool/listing_maker.html', {'form': form})
@@ -447,34 +460,53 @@ from .forms import ListingBoosterForm
 
 def listing_booster(request):
     analysis_result = None
+    competitor_analysis_result = None
     error_message = None
     score = 0
+    competitor_score = 0
+    scores = None  
+    competitor_scores = None
 
     if request.method == 'POST':
         form = ListingBoosterForm(request.POST)
         if form.is_valid():
-            asin = form.cleaned_data['asin']
-            url = form.cleaned_data['url']
-            listing = fetch_listing(asin, url)
+            main_listing = form.cleaned_data['main_listing']
+            competitor_listing = form.cleaned_data['competitor_listing']
+
+            listing = fetch_listing(main_listing)
+            competitor_listing_data = fetch_listing(competitor_listing)
+
             if not listing:
                 error_message = "No listing found for the given input."
             else:
-                analysis_result, score = analyze_listing(listing)
-                print("Calculated Score:", score)  # Debugging line
+                analysis_result, score, scores = analyze_listing(listing)
+                
+            if competitor_listing_data:
+                     competitor_analysis_result, competitor_score, competitor_scores = analyze_listing(competitor_listing_data)
     else:
         form = ListingBoosterForm()
         
-    return render(request, 'keyword_tool/listing_booster.html', {'form': form, 'analysis_result': analysis_result, 'error_message': error_message, 'score': score})
+    return render(request, 'keyword_tool/listing_booster.html', {
+        'form': form,
+        'analysis_result': analysis_result,
+        'competitor_analysis_result': competitor_analysis_result,  # New variable
+        'error_message': error_message,
+        'score': score,
+        'competitor_score': competitor_score,
+        'scores': scores,
+        'competitor_scores': competitor_scores
+    })
 
-def fetch_listing(asin, url):
+def fetch_listing(identifier):
     # Implement the logic to fetch the listing based on ASIN or URL
     # This is a placeholder implementation
-    if asin == "valid_asin" or url:
+    if identifier == "valid_asin" or identifier.startswith("http"):
         return {
             'title': 'Sample Product Title',
             'description': 'Sample product description.',
             'price': '1000',
-            'reviews': 'Sample reviews.'
+            'reviews': 'Sample reviews.',
+            'images': ['image1.jpg', 'image2.jpg']
         }
     else:
         return None
@@ -482,18 +514,42 @@ def fetch_listing(asin, url):
 def analyze_listing(listing):
     # Implement the AI logic to analyze the listing and show areas of improvement
     # This is a placeholder implementation
-    improvements = []
-    score = 100
+    improvements = {
+        'title': {
+            'title_length': [],
+            'search_volume_keywords': []
+        },
+        'description': {
+            'search_volume_keywords': [],
+            'description_length': [],
+            'count_of_features': []
+        },
+        'pricing': [],
+        'images': {
+            'count_of_images': [],
+            'quality_of_images': []
+        }
+    }
+    scores = {
+        'title': 100,
+        'description': 100,
+        'pricing': 100,
+        'images': 100
+    }
+    
     if len(listing['title']) < 50:
-        improvements.append("Title is too short. Consider adding more keywords.")
-        score -= 20
+        improvements['title']['title_length'].append("Title is too short. Consider adding more keywords.")
+        scores['title'] -= 20
     if len(listing['description']) < 200:
-        improvements.append("Description is too short. Consider adding more details.")
-        score -= 20
+        improvements['description']['description_length'].append("Description is too short. Consider adding more details.")
+        scores['description'] -= 20
     if int(listing['price']) > 500:
-        improvements.append("Price is too high. Consider reducing the price.")
-        score -= 20
-    if "bad" in listing['reviews']:
-        improvements.append("Reviews contain negative feedback. Consider addressing the issues mentioned.")
-        score -= 20
-    return improvements, score
+        improvements['pricing'].append("Price is too high. Consider reducing the price.")
+        scores['pricing'] -= 20
+    if len(listing['images']) < 5:
+        improvements['images']['count_of_images'].append("Not enough images. Consider adding more images.")
+        scores['images'] -= 20
+
+    overall_score = (scores['title'] + scores['description'] + scores['pricing'] + scores['images']) / 4
+
+    return improvements, overall_score, scores

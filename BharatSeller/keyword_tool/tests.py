@@ -1,0 +1,1 @@
+print("Kriti ki ulti luli hai")

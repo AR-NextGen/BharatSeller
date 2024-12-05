@@ -55,6 +55,7 @@ class KeywordAnalysis(models.Model):
         ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
     ])
     search_volume = models.IntegerField()
+    avg_monthly_sales = models.IntegerField(default=0)
     competition = models.DecimalField(max_digits=5, decimal_places=2)
     suggested_bid = models.DecimalField(max_digits=10, decimal_places=2)
 
