@@ -74,87 +74,125 @@ def register(request):
 def test_login_template(request):
     return render(request, 'keyword_tool/login.html')
 
+import re
 from django.shortcuts import render
 from .forms import ReviewAnalysisForm
-from textblob import TextBlob
 import matplotlib.pyplot as plt
 import io
 import base64
+import plotly.graph_objs as go
+import plotly.offline as opy
+from textblob import TextBlob
+from collections import Counter
 
 def review_analysis(request):
     analysis_result = None
-    polarity_scores = []
-    subjectivity_scores = []
     error_message = None
+    positive_reviews = 0
+    negative_reviews = 0
+    phrase_frequencies = Counter()
+    phrase_reviews = {}
 
     if request.method == 'POST':
         form = ReviewAnalysisForm(request.POST)
         if form.is_valid():
-            asin = form.cleaned_data['asin']
+            identifier = form.cleaned_data['identifier']
             review_text = form.cleaned_data['review_text']
             reviews = []
 
-            if asin:
+            if identifier:
                 # Fetch reviews based on ASIN (placeholder implementation)
-                reviews = get_reviews(asin)
+                reviews = get_reviews(identifier)
                 if not reviews:
-                    error_message = "Incorrect ASIN. Please enter a correct ASIN."
+                    error_message = "Incorrect ASIN or URL. Please enter a correct ASIN or URL."
 
             if review_text:
                 reviews.extend([{'content': review} for review in review_text.split('.') if review.strip()])
 
             if reviews:
                 for review in reviews:
-                    analysis = TextBlob(review['content'])
-                    polarity_scores.append(analysis.sentiment.polarity)
-                    subjectivity_scores.append(analysis.sentiment.subjectivity)
+                    content = review['content']
 
-                fig, ax = plt.subplots()
-                ax.hist(polarity_scores, bins=10, color='skyblue', edgecolor='black')
-                ax.set_title('Sentiment Polarity Distribution')
-                ax.set_xlabel('Polarity')
-                ax.set_ylabel('Frequency')
+                    # Extract phrases and update frequencies
+                    words = re.findall(r'\b\w+\b', content.lower())
+                    phrases = [' '.join(words[i:i+2]) for i in range(len(words)-1)]
+                    phrase_frequencies.update(phrases)
+                    for phrase in phrases:
+                        if phrase not in phrase_reviews:
+                            phrase_reviews[phrase] = []
+                        phrase_reviews[phrase].append(content)
+                    if 'good' in content.lower() or 'great' in content.lower():
+                        positive_reviews += 1
+                    else:
+                        negative_reviews += 1
+
+                total_reviews = positive_reviews + negative_reviews
+                positive_percentage = (positive_reviews / total_reviews) * 100 if total_reviews > 0 else 0
+                negative_percentage = (negative_reviews / total_reviews) * 100 if total_reviews > 0 else 0
+
+                trace1 = go.Bar(
+                    x=['Reviews'],
+                    y=[positive_percentage],
+                    name='Positive Reviews',
+                    marker=dict(color='green')
+                )
+                trace2 = go.Bar(
+                    x=['Reviews'],
+                    y=[negative_percentage],
+                    name='Negative Reviews',
+                    marker=dict(color='red')
+                )
+
+                data = [trace1, trace2]
+                layout = go.Layout(
+                    barmode='stack',
+                    title='Review Sentiment Analysis',
+                    yaxis=dict(title='Percentage', ticksuffix='%')
+                )
+
+                fig = go.Figure(data=data, layout=layout)
+                div = opy.plot(fig, auto_open=False, output_type='div')
                 
-                buf = io.BytesIO()
-                plt.savefig(buf, format='png')
-                buf.seek(0)
-                histogram_url = base64.b64encode(buf.getvalue()).decode('utf-8')
-                buf.close()
-                plt.close(fig)
-
-                subjective_count = sum(1 for score in subjectivity_scores if score >= 0.5)
-                objective_count = len(subjectivity_scores) - subjective_count
-                fig, ax = plt.subplots()
-                ax.pie([subjective_count, objective_count], labels=['Subjective', 'Objective'], autopct='%1.1f%%', startangle=90)
-                ax.axis('equal')
-                
-                buf = io.BytesIO()
-                plt.savefig(buf, format='png')
-                buf.seek(0)
-                pie_chart_url = base64.b64encode(buf.getvalue()).decode('utf-8')
-                buf.close()
-                plt.close(fig)
-
                 analysis_result = {
-                    'histogram_url': histogram_url,
-                    'pie_chart_url': pie_chart_url,
-                    'polarity_scores': polarity_scores,
-                    'subjectivity_scores': subjectivity_scores,
-                    'reviews': zip([review['content'] for review in reviews], polarity_scores, subjectivity_scores)
+                    'chart': div,
+                    'phrase_frequencies': phrase_frequencies.most_common(15),
+                    'phrase_reviews': phrase_reviews
                 }
     else:
         form = ReviewAnalysisForm()
         
-    return render(request, 'keyword_tool/review_analysis.html', {'form': form, 'analysis_result': analysis_result, 'error_message': error_message})
+    return render(request, 'keyword_tool/review_analysis.html', {
+        'form': form,
+        'analysis_result': analysis_result,
+        'error_message': error_message
+    })
+      
+def get_reviews(identifier):
+    # Extract ASIN from URL if identifier is a URL
+    asin = identifier
+    if identifier.startswith("http"):
+        match = re.search(r'/([A-Z0-9]{10})(?:[/?]|$)', identifier)
+        if match:
+            asin = match.group(1)
+        else:
+            return []
+    reviews = fetch_reviews_from_amazon(asin)
+    return reviews
 
-def get_reviews(asin):
-    # Implement the logic to fetch reviews for the given ASIN
-    # This is a placeholder implementation
-    if asin == "valid_asin":
+def fetch_reviews_from_amazon(asin):
+    # Sample data for testing
+    if asin == "B0BPCNSF83":
         return [
-            {'title': 'Great product', 'content': 'I really liked this product. It works as expected.', 'rating': 5},
-            {'title': 'Not bad', 'content': 'The product is okay, but could be better.', 'rating': 3},
-            {'title': 'Terrible', 'content': 'I did not like this product at all.', 'rating': 1},
+            {'title': 'Great product', 'content': 'I really liked this product. It works as expected. Great value for money.', 'rating': 5},
+            {'title': 'Not bad', 'content': 'The product is okay, but could be better. Good for the price.', 'rating': 3},
+            {'title': 'Terrible', 'content': 'I did not like this product at all. Poor quality and not worth the money.', 'rating': 1},
+            {'title': 'Excellent', 'content': 'Excellent product. Highly recommend it. Great quality and value.', 'rating': 5},
+            {'title': 'Average', 'content': 'The product is average. Not too good, not too bad. Just okay.', 'rating': 3},
+            {'title': 'Bad experience', 'content': 'Had a bad experience with this product. Not as described. Poor performance.', 'rating': 2},
+            {'title': 'Fantastic', 'content': 'Fantastic product! Works like a charm. Great purchase.', 'rating': 5},
+            {'title': 'Disappointed', 'content': 'Very disappointed with this product. Not worth the price. Poor build quality.', 'rating': 1},
+            {'title': 'Good value', 'content': 'Good value for money. Decent quality and performance.', 'rating': 4},
+            {'title': 'Satisfied', 'content': 'Satisfied with the product. Meets expectations. Good quality.', 'rating': 4},
         ]
     else:
         return []
@@ -222,7 +260,6 @@ def keyword_analysis(request):
         keyword = form.cleaned_data['keyword']
         category = form.cleaned_data['category']
         results = KeywordAnalysis.objects.filter(keyword__icontains=keyword, category=category)
-        print("Results:", results)  # Debugging line
         for result in results:
             print("Avg. Monthly Sales:", result.avg_monthly_sales)  # Debugging line
 

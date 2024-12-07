@@ -6,26 +6,13 @@ class KeywordForm(forms.ModelForm):
         model = Keyword
         fields = ['name', 'search_volume', 'difficulty']
 
-class ReviewAnalysisForm(forms.Form):
-    asin = forms.CharField(
-        max_length=10,
-        required=True,
-        label='ASIN',
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Enter ASIN',
-            'class': 'form-control'
-        })
-    )        
 
 class ReviewAnalysisForm(forms.Form):
-    asin = forms.CharField(
-        max_length=10,
+    identifier = forms.CharField(
+        label='ASIN or URL', 
+        max_length=255, 
         required=True,
-        label='ASIN',
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Enter ASIN',
-            'class': 'form-control'
-        })
+        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL', 'class': 'form-control'})  # Update placeholder and add class
     )
     review_text = forms.CharField(
         widget=forms.Textarea(attrs={
@@ -231,11 +218,11 @@ from django import forms
 
 class FetchListingForm(forms.Form):
     asin = forms.CharField(
-        max_length=10,
+        max_length=255,
         required=True,
-        label='ASIN',
+        label='ASIN or URL',
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter ASIN',
+            'placeholder': 'Enter ASIN or URL',
             'class': 'form-control'
         })
     )

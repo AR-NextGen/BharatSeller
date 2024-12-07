@@ -9,7 +9,7 @@
             <form method="post" class="form-group" id="review-analysis-form">
                 {% csrf_token %}
                 <div class="form-group">
-                    {{ form.asin }}
+                    {{ form.identifier }}
                 </div>
                 <div class="form-group">
                     {{ form.review_text }}
@@ -28,47 +28,51 @@
         </div>
         {% endif %}
         {% if analysis_result %}
-        <h2>Analysis Results</h2>
-        <div class="card mt-3">
-            <div class="card-body">
-                <p><strong>Review Text:</strong> {{ analysis_result.review_text }}</p>
-                <p><strong>Polarity:</strong> <span class="{% if analysis_result.polarity > 0 %}text-success{% elif analysis_result.polarity < 0 %}text-danger{% else %}text-warning{% endif %}">{{ analysis_result.polarity }}</span></p>
-                <p><strong>Subjectivity:</strong> {{ analysis_result.subjectivity }}</p>
-            </div>
-        </div>
+        <h2 class="text-center">Review Sentiment Analysis</h2>
+        <div id="plotly-chart">{{ analysis_result.chart|safe }}</div> <!-- Ensure the chart div has an id -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const chartData = {{ analysis_result.chart|safe }};
+                if (chartData && chartData.data && chartData.layout) {
+                    Plotly.newPlot('plotly-chart', chartData.data, chartData.layout);
+                } else {
+                    console.error("Chart data is missing or improperly formatted:", chartData);
+                }
+            });
+        </script>
+
         <div class="row mt-4">
-            <div class="col-md-6">
-                <h2 class="text-center">Sentiment Polarity Distribution</h2>
-                <img src="data:image/png;base64,{{ analysis_result.histogram_url }}" class="img-fluid" alt="Sentiment Polarity Distribution">
+            <div class="col-md-4">
+                <h3>Frequent Phrases</h3>
+                <ul>
+                    {% for phrase, frequency in analysis_result.phrase_frequencies %}
+                    <li><a href="#" class="phrase-link" data-phrase="{{ phrase }}">{{ phrase }}: {{ frequency }}</a></li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="col-md-6">
-                <h2 class="text-center">Subjectivity Distribution</h2>
-                <img src="data:image/png;base64,{{ analysis_result.pie_chart_url }}" class="img-fluid" alt="Subjectivity Distribution">
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <h2 class="text-center">Polarity and Subjectivity Scores</h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Review</th>
-                            <th>Polarity</th>
-                            <th>Subjectivity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for review, polarity, subjectivity in analysis_result.reviews %}
-                        <tr>
-                            <td>{{ review }}</td>
-                            <td>{{ polarity }}</td>
-                            <td>{{ subjectivity }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="col-md-8">
+                <h3>Reviews</h3>
+                <div id="review-list" style="max-height: 400px; overflow-y: scroll;">
+                    <!-- Reviews will be dynamically updated here -->
+                </div>
             </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const phraseLinks = document.querySelectorAll('.phrase-link');
+                const reviewList = document.getElementById('review-list');
+                const phraseReviews = {{ analysis_result.phrase_reviews|safe }};
+
+                phraseLinks.forEach(link => {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const phrase = this.getAttribute('data-phrase');
+                        const reviews = phraseReviews[phrase];
+                        reviewList.innerHTML = '<h4>' + phrase + '</h4><ul>' + reviews.map(review => '<li>' + review + '</li>').join('') + '</ul>';
+                    });
+                });
+            });
+        </script>
         {% endif %}
     </div>
 </div>
