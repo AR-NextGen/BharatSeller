@@ -141,7 +141,7 @@
         // Get the selected keywords
         const selectedKeywords = Array.from(document.querySelectorAll('input[name="keywords"]:checked')).map(checkbox => checkbox.value);
         // Redirect to the Keyword Optimization tool with the selected keywords
-        window.location.href = `{% url 'keyword_optimization' %}?keywords=${encodeURIComponent(selectedKeywords.join('\n'))}`;
+        window.location.href = `{% url 'spyglass' %}?keywords=${encodeURIComponent(selectedKeywords.join('\n'))}`;
     });
 </script>
 {% endblock %}

@@ -1,18 +1,4 @@
 from django.db import models
-from django.utils import timezone
-
-class Keyword(models.Model):
-    name = models.CharField(max_length=200)
-    search_volume = models.IntegerField()
-    difficulty = models.CharField(max_length=20)
-    created_at = models.DateTimeField(auto_now_add=True)  # Field to store creation time
-    updated_at = models.DateTimeField(auto_now=True)      # Field to store last update time
-    favorite = models.BooleanField(default=False)  # New field to mark as favorite
-
-    def __str__(self):
-        return self.name
-    
-from django.db import models
 
 class Review(models.Model):
     review_text = models.TextField()
@@ -39,8 +25,8 @@ class Product(models.Model):
     
 from django.db import models
 
-class KeywordAnalysis(models.Model):
-    keyword = models.CharField(max_length=255)
+class Keyword(models.Model):
+    keyword = models.CharField(max_length=255, default='default_keyword')
     category = models.CharField(max_length=255, choices=[
         ('Mobiles, Computers', 'Mobiles, Computers'),
         ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
@@ -53,11 +39,12 @@ class KeywordAnalysis(models.Model):
         ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
         ('Books', 'Books'),
         ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
-    ])
-    search_volume = models.IntegerField()
-    avg_monthly_sales = models.IntegerField(default=0)
-    competition = models.DecimalField(max_digits=5, decimal_places=2)
-    suggested_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    ],default='Uncategorized')
+    search_volume = models.IntegerField(default=0)
+    sales = models.IntegerField(default=0)
+    sponsored_asin = models.CharField(max_length=255, blank=True, null=True)
+    match_type = models.CharField(max_length=50, blank=True, null=True)
+    suggested_bid = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
         return self.keyword

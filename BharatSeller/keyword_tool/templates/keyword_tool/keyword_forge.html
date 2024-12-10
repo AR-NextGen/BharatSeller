@@ -1,0 +1,168 @@
+{% extends 'keyword_tool/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">KeywordForge</h1>
+    <form method="post" class="form-group">
+        {% csrf_token %}
+        <div class="form-row align-items-end">
+            <div class="col-md-4">
+                <label for="keyword">Keyword</label>
+                {{ form.keyword }}
+            </div>
+            <div class="col-md-4">
+                <label for="category">Category</label>
+                <select name="category" id="category" class="form-control">
+                    {% for value, label in form.fields.category.choices %}
+                        <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">Analyze</button>
+                <button type="button" class="btn btn-secondary" data-toggle="collapse" data-target="#filterForm">Filter</button>
+            </div>
+        </div>
+        <div id="filterForm" class="collapse mt-3">
+            <div class="form-row">
+                <div class="col-md-2">
+                    <label for="min_search_volume">Min Search Volume</label>
+                    <input type="number" name="min_search_volume" id="min_search_volume" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="max_search_volume">Max Search Volume</label>
+                    <input type="number" name="max_search_volume" id="max_search_volume" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="min_sales">Min Sales</label>
+                    <input type="number" name="min_sales" id="min_sales" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="max_sales">Max Sales</label>
+                    <input type="number" name="max_sales" id="max_sales" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="sponsored_asin">Sponsored ASIN</label>
+                    <input type="text" name="sponsored_asin" id="sponsored_asin" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="match_type">Match Type</label>
+                    <input type="text" name="match_type" id="match_type" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="min_suggested_bid">Min Suggested Bid</label>
+                    <input type="number" step="0.01" name="min_suggested_bid" id="min_suggested_bid" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="max_suggested_bid">Max Suggested Bid</label>
+                    <input type="number" step="0.01" name="max_suggested_bid" id="max_suggested_bid" class="form-control">
+                </div>
+            </div>
+        </div>
+    </form>
+    {% if keywords %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Distribution
+                </div>
+                <div class="card-body">
+                    <p>Total Keywords: {{ total_keywords }}</p>
+                    <p>Organic: {{ total_organic }}</p>
+                    <p>Sponsored: {{ total_sponsored }}</p>
+                    <div id="distributionChart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Occurrences
+                </div>
+                <div class="card-body">
+                    <ul>
+                        {% for keyword, count in occurrences %}
+                        <li>{{ keyword }} ({{ count }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>Keyword</th>
+                <th>Search Volume</th>
+                <th>Sales</th>
+                <th>Sponsored ASIN</th>
+                <th>Match Type</th>
+                <th>Suggested Bid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for keyword in keywords %}
+            <tr>
+                <td>{{ keyword.keyword }}</td>
+                <td>
+                    {{ keyword.search_volume }}
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#trendModal{{ keyword.id }}">
+                        <i class="fas fa-chart-line"></i>
+                    </button>
+                </td>
+                <td>{{ keyword.sales }}</td>
+                <td>{{ keyword.sponsored_asin }}</td>
+                <td>{{ keyword.match_type }}</td>
+                <td>{{ keyword.suggested_bid }}</td>
+            </tr>
+
+            <!-- Modal -->
+            <div class="modal fade" id="trendModal{{ keyword.id }}" tabindex="-1" role="dialog" aria-labelledby="trendModalLabel{{ keyword.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="trendModalLabel{{ keyword.id }}">Trend for {{ keyword.keyword }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="trendChart{{ keyword.id }}"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No keywords found.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for keyword in keywords %}
+        const trendData{{ keyword.id }} = {
+            x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            y: [10, 15, 13, 17, 22, 18, 25, 30, 28, 35, 40, 45],  // Sample data, replace with actual trend data
+            type: 'scatter'
+        };
+
+        const layout{{ keyword.id }} = {
+            title: 'Search Volume Trend for {{ keyword.keyword }}'
+        };
+
+        document.querySelector(`#trendModal{{ keyword.id }}`).addEventListener('shown.bs.modal', function() {
+            Plotly.newPlot('trendChart{{ keyword.id }}', [trendData{{ keyword.id }}], layout{{ keyword.id }});
+        });
+        {% endfor %}
+    });
+</script>
+{% endblock %}

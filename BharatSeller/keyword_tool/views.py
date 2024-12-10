@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Keyword, KeywordAnalysis, Product
-from .forms import KeywordForm, RegisterForm, ProductSearchForm, SimplifiedProductSearchForm, KeywordAnalysisForm
+from .models import Keyword, Product
+from .forms import RegisterForm, ProductexplorerForm, SimplifiedProductexplorerForm, KeywordForgeForm
 import matplotlib
 matplotlib.use('Agg')
 from textblob import TextBlob
@@ -77,13 +77,13 @@ def test_login_template(request):
 import re
 from django.shortcuts import render
 from .forms import ReviewAnalysisForm
-import matplotlib.pyplot as plt
-import io
-import base64
 import plotly.graph_objs as go
 import plotly.offline as opy
+import plotly
 from textblob import TextBlob
 from collections import Counter
+import json
+from .forms import ListingBoosterForm
 
 def review_analysis(request):
     analysis_result = None
@@ -97,7 +97,6 @@ def review_analysis(request):
         form = ReviewAnalysisForm(request.POST)
         if form.is_valid():
             identifier = form.cleaned_data['identifier']
-            review_text = form.cleaned_data['review_text']
             reviews = []
 
             if identifier:
@@ -105,9 +104,6 @@ def review_analysis(request):
                 reviews = get_reviews(identifier)
                 if not reviews:
                     error_message = "Incorrect ASIN or URL. Please enter a correct ASIN or URL."
-
-            if review_text:
-                reviews.extend([{'content': review} for review in review_text.split('.') if review.strip()])
 
             if reviews:
                 for review in reviews:
@@ -151,12 +147,16 @@ def review_analysis(request):
                 )
 
                 fig = go.Figure(data=data, layout=layout)
-                div = opy.plot(fig, auto_open=False, output_type='div')
-                
+                chart_data = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+                # Generate AI-powered analysis points
+                analysis_points = generate_analysis_points(reviews)
+
                 analysis_result = {
-                    'chart': div,
+                    'chart_data': chart_data,
                     'phrase_frequencies': phrase_frequencies.most_common(15),
-                    'phrase_reviews': phrase_reviews
+                    'phrase_reviews': phrase_reviews,
+                    'analysis_points': analysis_points
                 }
     else:
         form = ReviewAnalysisForm()
@@ -166,7 +166,7 @@ def review_analysis(request):
         'analysis_result': analysis_result,
         'error_message': error_message
     })
-      
+
 def get_reviews(identifier):
     # Extract ASIN from URL if identifier is a URL
     asin = identifier
@@ -197,88 +197,189 @@ def fetch_reviews_from_amazon(asin):
     else:
         return []
 
-def product_search(request):
-    advanced_form = ProductSearchForm(request.GET or None)
-    simplified_form = SimplifiedProductSearchForm(request.GET or None)
+def generate_analysis_points(reviews):
+    # Placeholder function to simulate AI-powered analysis
+    # Replace this with actual implementation using a language model like GPT-3 or GPT-4
+    analysis_points = [
+        "Most users found the product to be of great value for money.",
+        "Several users mentioned that the product quality could be improved.",
+        "A significant number of users were satisfied with the product's performance.",
+        "Some users experienced issues with the product's build quality.",
+        "The product received mixed reviews regarding its overall performance."
+    ]
+    return analysis_points
+
+from django.shortcuts import render
+from .forms import ProductexplorerForm, SimplifiedProductexplorerForm
+from .models import Product
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+
+def product_explorer(request):
+    print("Entering product_explorer view")
+    advanced_form = ProductexplorerForm(request.GET or None)
+    simplified_form = SimplifiedProductexplorerForm(request.GET or None)
     products = Product.objects.all()
+
+    print("Request method:", request.method)
+    print("GET data:", request.GET)
+    print("Is AJAX request:", request.headers.get('x-requested-with') == 'XMLHttpRequest')
 
     if 'advanced' in request.GET:
         form = advanced_form
+        print("Using advanced form")
         if form.is_valid():
+            print("Advanced form is valid")
             if form.cleaned_data['category']:
+                print("Category:", form.cleaned_data['category'])
                 products = products.filter(category__icontains=form.cleaned_data['category'])
             if form.cleaned_data['improvements']:
+                print("Improvements:", form.cleaned_data['improvements'])
                 products = products.filter(improvements__icontains=form.cleaned_data['improvements'])
             if form.cleaned_data['min_price']:
+                print("Min Price:", form.cleaned_data['min_price'])
                 products = products.filter(price__gte=form.cleaned_data['min_price'])
             if form.cleaned_data['max_price']:
+                print("Max Price:", form.cleaned_data['max_price'])
                 products = products.filter(price__lte=form.cleaned_data['max_price'])
             if form.cleaned_data['min_rating']:
+                print("Min Rating:", form.cleaned_data['min_rating'])
                 products = products.filter(rating__gte=form.cleaned_data['min_rating'])
             if form.cleaned_data['max_rating']:
+                print("Max Rating:", form.cleaned_data['max_rating'])
                 products = products.filter(rating__lte=form.cleaned_data['max_rating'])
             if form.cleaned_data['min_reviews']:
+                print("Min Reviews:", form.cleaned_data['min_reviews'])
                 products = products.filter(reviews__gte=form.cleaned_data['min_reviews'])
             if form.cleaned_data['max_reviews']:
+                print("Max Reviews:", form.cleaned_data['max_reviews'])
                 products = products.filter(reviews__lte=form.cleaned_data['max_reviews'])
             if form.cleaned_data['min_sales']:
+                print("Min Sales:", form.cleaned_data['min_sales'])
                 products = products.filter(sales__gte=form.cleaned_data['min_sales'])
             if form.cleaned_data['max_sales']:
+                print("Max Sales:", form.cleaned_data['max_sales'])
                 products = products.filter(sales__lte=form.cleaned_data['max_sales'])
             if form.cleaned_data['sort_by']:
+                print("Sort By:", form.cleaned_data['sort_by'])
                 products = products.order_by(form.cleaned_data['sort_by'])
+        else:
+            print("Advanced form is not valid")
     else:
         form = simplified_form
+        print("Using simplified form")
         if form.is_valid():
+            print("Simplified form is valid")
             if form.cleaned_data['category']:
+                print("Category:", form.cleaned_data['category'])
                 products = products.filter(category__icontains=form.cleaned_data['category'])
             if form.cleaned_data['improvements']:
+                print("Improvements:", form.cleaned_data['improvements'])
                 products = products.filter(improvements__icontains=form.cleaned_data['improvements'])
+        else:
+            print("Simplified form is not valid")
 
     paginator = Paginator(products, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    print("Page object:", page_obj)
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        print("Returning JSON response")
         return JsonResponse({'products': list(page_obj.object_list.values()), 'has_next': page_obj.has_next(), 'has_previous': page_obj.has_previous(), 'num_pages': page_obj.paginator.num_pages, 'current_page': page_obj.number})
 
-    return render(request, 'keyword_tool/product_search.html', {'advanced_form': advanced_form, 'simplified_form': simplified_form, 'products': page_obj, 'is_advanced': 'advanced' in request.GET})
+    print("Returning HTML response")
+    return render(request, 'keyword_tool/product_explorer.html', {
+        'advanced_form': advanced_form,
+        'simplified_form': simplified_form,
+        'products': page_obj,
+        'is_advanced': 'advanced' in request.GET,
+        'sample_data': [
+            {'Product': 'Product 1', 'Price': 500, 'Rating': 4, 'Monthly Sales': 1000, 'Monthly Revenue': 5000, 'Shipping Size Tier': 'Standard', 'BSR': 50},
+            {'Product': 'Product 2', 'Price': 400, 'Rating': 4.2, 'Monthly Sales': 1000, 'Monthly Revenue': 5000, 'Shipping Size Tier': 'Standard', 'BSR': 50},
+            {'Product': 'Product 3', 'Price': 600, 'Rating': 3.8, 'Monthly Sales': 1000, 'Monthly Revenue': 5000, 'Shipping Size Tier': 'Standard', 'BSR': 50},
+        ]
+    })
 
 def home(request):
-    return render(request, 'keyword_tool/home.html')
+    return render(request, 'keyword_tool/product_explorer.html')
 
 from django.shortcuts import render
-from django.http import JsonResponse
-from .forms import KeywordAnalysisForm
-from .models import KeywordAnalysis
+from .models import Keyword
+from .forms import KeywordForgeForm
+from collections import Counter
 
-def keyword_analysis(request):
-    form = KeywordAnalysisForm(request.GET or None)
-    results = None
+def keyword_forge(request):
+    form = KeywordForgeForm()
+    keywords = []
+    sample_data = [
+        {'keyword': 'Keyword 1', 'category': 'Mobiles, Computers', 'search_volume': 1000, 'sales': 100, 'sponsored_asin': 'ASIN123', 'match_type': 'Exact', 'suggested_bid': 1.50},
+        {'keyword': 'Keyword 2', 'category': 'TV, Appliances, Electronics', 'search_volume': 1500, 'sales': 150, 'sponsored_asin': 'ASIN456', 'match_type': 'Broad', 'suggested_bid': 2.00},
+        {'keyword': 'Keyword 3', 'category': "Men's Fashion", 'search_volume': 2000, 'sales': 200, 'sponsored_asin': 'ASIN789', 'match_type': 'Phrase', 'suggested_bid': 2.50},
+    ]
+    for data in sample_data:
+        Keyword.objects.get_or_create(**data)
 
-    if form.is_valid():
-        keyword = form.cleaned_data['keyword']
-        category = form.cleaned_data['category']
-        results = KeywordAnalysis.objects.filter(keyword__icontains=keyword, category=category)
-        for result in results:
-            print("Avg. Monthly Sales:", result.avg_monthly_sales)  # Debugging line
+    all_keywords = Keyword.objects.all()
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            'results': list(results.values('keyword', 'category', 'search_volume', 'avg_monthly_sales', 'competition', 'suggested_bid'))})
-    return render(request, 'keyword_tool/keyword_analysis.html', {'form': form, 'results': results})
+    if request.method == 'POST':
+        form = KeywordForgeForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data['category']
+            keyword_search = form.cleaned_data['keyword']
+            keywords = Keyword.objects.filter(category=category, keyword__icontains=keyword_search)
+            min_search_volume = request.POST.get('min_search_volume')
+            max_search_volume = request.POST.get('max_search_volume')
+            min_sales = request.POST.get('min_sales')
+            max_sales = request.POST.get('max_sales')
+            sponsored_asin = request.POST.get('sponsored_asin')
+            match_type = request.POST.get('match_type')
+            min_suggested_bid = request.POST.get('min_suggested_bid')
+            max_suggested_bid = request.POST.get('max_suggested_bid')
+
+            if min_search_volume:
+                keywords = keywords.filter(search_volume__gte=min_search_volume)
+            if max_search_volume:
+                keywords = keywords.filter(search_volume__lte=max_search_volume)
+            if min_sales:
+                keywords = keywords.filter(sales__gte=min_sales)
+            if max_sales:
+                keywords = keywords.filter(sales__lte=max_sales)
+            if sponsored_asin:
+                keywords = keywords.filter(sponsored_asin__icontains=sponsored_asin)
+            if match_type:
+                keywords = keywords.filter(match_type__icontains=match_type)
+            if min_suggested_bid:
+                keywords = keywords.filter(suggested_bid__gte=min_suggested_bid)
+            if max_suggested_bid:
+                keywords = keywords.filter(suggested_bid__lte=max_suggested_bid)
+            
+        # Calculate distribution data
+            total_keywords = keywords.count()
+            total_organic = keywords.filter(sponsored_asin='').count()
+            total_sponsored = total_keywords - total_organic
+
+            # Calculate occurrences data
+            keyword_list = [keyword.keyword for keyword in keywords]
+            keyword_counter = Counter(keyword_list)
+            occurrences = keyword_counter.most_common(15)
+
+    return render(request, 'keyword_tool/keyword_forge.html', {'form': form, 'keywords': keywords})
+
+
 
 def keyword_list(request):
-    keywords = KeywordAnalysis.objects.all()
+    keywords = KeywordForge.objects.all()
     return render(request, 'keyword_tool/keyword_list.html', {'keywords': keywords})
 
 from django.shortcuts import render
-from .forms import KeywordOptimizationForm
+from .forms import KeyCleanseForm
 
 COMMON_WORDS = set(["up", "down", "the", "and", "a", "to", "in", "is", "it", "you", "that", "he", "was", "for", "on", "are", "with", "as", "I", "his", "they", "be", "at", "one", "have", "this", "from", "or", "had", "by", "not", "word", "but", "what", "some", "we", "can", "out", "other", "were", "all", "there", "when", "up", "use", "your", "how", "said", "an", "each", "she"])
 
-def keyword_optimization(request):
-    form = KeywordOptimizationForm(request.POST or None)
+def keycleanse(request):
+    form = KeyCleanseForm(request.POST or None)
     optimized_keywords = None
 
     if form.is_valid():
@@ -344,7 +445,7 @@ def keyword_optimization(request):
             for word, freq in word_frequency.items():
                 optimized_keywords += f'{word}: {freq}\n'
 
-    return render(request, 'keyword_tool/keyword_optimization.html', {'form': form, 'optimized_keywords': optimized_keywords})
+    return render(request, 'keyword_tool/keycleanse.html', {'form': form, 'optimized_keywords': optimized_keywords})
 
 from django.shortcuts import render
 
@@ -354,7 +455,7 @@ def test_login_template(request):
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .forms import CerebroForm, FetchListingForm, CreateListingForm, KeywordOptimizationForm
+from .forms import SpyGlassForm, FetchListingForm, CreateListingForm, KeyCleanseForm
 
 def register(request):
     if request.method == 'POST':
@@ -367,22 +468,22 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'keyword_tool/register.html', {'form': form})
 
-def cerebro(request):
+def spyglass(request):
     if request.method == 'POST':
-        form = CerebroForm(request.POST)
+        form = SpyGlassForm(request.POST)
         if form.is_valid():
             # Process the ASINs and get the keywords
             asins = form.cleaned_data['asins'].split(',')
             asins = [asin.strip() for asin in asins if asin.strip()]  # Clean up whitespace
             keywords = get_keywords(asins)  # Replace with actual function to get keywords
-            return render(request, 'keyword_tool/cerebro_results.html', {'form': form, 'keywords': keywords})
+            return render(request, 'keyword_tool/spyglass_results.html', {'form': form, 'keywords': keywords})
     else:
-        form = CerebroForm()
-    return render(request, 'keyword_tool/cerebro.html', {'form': form})
+        form = SpyGlassForm()
+    return render(request, 'keyword_tool/spyglass.html', {'form': form})
 
-def listing_maker(request):
+def listing_craft(request):
     keywords = request.GET.get('keywords', '')
-    return render(request, 'keyword_tool/listing_maker.html', {'keywords': keywords})
+    return render(request, 'keyword_tool/listing_craft.html', {'keywords': keywords})
 
 def fetch_listing(request):
     if request.method == 'POST':
@@ -395,10 +496,10 @@ def fetch_listing(request):
     elif request.method == 'GET' and 'identifier' in request.GET:
         identifier = request.GET['identifier']
         form = FetchListingForm(initial={'asin': identifier})
-        return render(request, 'keyword_tool/listing_maker.html', {'form': form})
+        return render(request, 'keyword_tool/listing_craft.html', {'form': form})
     else:
         form = FetchListingForm()
-    return render(request, 'keyword_tool/listing_maker.html', {'form': form})
+    return render(request, 'keyword_tool/listing_craft.html', {'form': form})
 
 def create_listing(request):
     if request.method == 'POST':
@@ -410,26 +511,26 @@ def create_listing(request):
             price = form.cleaned_data['price']
             # Save the new listing (replace with actual save logic)
             save_listing(title, description, price)
-            return redirect('listing_maker')
+            return redirect('listing_craft')
     else:
         form = CreateListingForm()
-    return render(request, 'keyword_tool/listing_maker.html', {'form': form})
+    return render(request, 'keyword_tool/listing_craft.html', {'form': form})
 
-def keyword_optimization(request):
+def keycleanse(request):
     if request.method == 'POST':
-        form = KeywordOptimizationForm(request.POST)
+        form = KeyCleanseForm(request.POST)
         if form.is_valid():
             keywords = form.cleaned_data['keywords']
             # Process the keywords (e.g., remove duplicates, maintain phrases, etc.)
             optimized_keywords = process_keywords(keywords, form.cleaned_data)
-            return render(request, 'keyword_tool/keyword_optimization.html', {
+            return render(request, 'keyword_tool/keycleanse.html', {
                 'form': form,
                 'optimized_keywords': optimized_keywords
             })
     else:
         keywords = request.GET.get('keywords', '')
-        form = KeywordOptimizationForm(initial={'keywords': keywords})
-    return render(request, 'keyword_tool/keyword_optimization.html', {'form': form})
+        form = KeyCleanseForm(initial={'keywords': keywords})
+    return render(request, 'keyword_tool/keycleanse.html', {'form': form})
 
 def process_keywords(keywords, options):
     # Implement the keyword processing logic here
@@ -517,16 +618,20 @@ def listing_booster(request):
                 error_message = "No listing found for the given input."
             else:
                 analysis_result, score, scores = analyze_listing(listing)
-                
+            
             if competitor_listing_data:
-                     competitor_analysis_result, competitor_score, competitor_scores = analyze_listing(competitor_listing_data)
+                competitor_analysis_result, competitor_score, competitor_scores = analyze_listing(competitor_listing_data)
+                # Add gain and pain analysis
+                competitor_analysis_result['gain'] = ["Gain 1", "Gain 2", "Gain 3"]  # Replace with actual gain analysis
+                competitor_analysis_result['pain'] = ["Pain 1", "Pain 2", "Pain 3"]  # Replace with actual pain analysis
+    
     else:
         form = ListingBoosterForm()
         
     return render(request, 'keyword_tool/listing_booster.html', {
         'form': form,
         'analysis_result': analysis_result,
-        'competitor_analysis_result': competitor_analysis_result,  # New variable
+        'competitor_analysis_result': competitor_analysis_result,
         'error_message': error_message,
         'score': score,
         'competitor_score': competitor_score,

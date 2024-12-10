@@ -144,118 +144,35 @@
         {% endif %}
         {% if competitor_analysis_result %}
         <h2>Competitor Analysis Results</h2>
-        <div class="card mt-3">
-            <div class="card-body">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Subcategory</th>
-                            <th>Improvements</th>
-                            <th>Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td rowspan="2">Title</td>
-                            <td>Title Length</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.title.title_length %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td rowspan="2">{{ competitor_scores.title }}%</td>
-                        </tr>
-                        <tr>
-                            <td>Search Volume Keywords</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.title.search_volume_keywords %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td rowspan="3">Description</td>
-                            <td>Search Volume Keywords</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.description.search_volume_keywords %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td rowspan="3">{{ competitor_scores.description }}%</td>
-                        </tr>
-                        <tr>
-                            <td>Description Length</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.description.description_length %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Count of Features</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.description.count_of_features %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Pricing</td>
-                            <td></td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.pricing %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td>{{ competitor_scores.pricing }}%</td>
-                        </tr>
-                        <tr>
-                            <td rowspan="2">Images</td>
-                            <td>Count of Images</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.images.count_of_images %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td rowspan="2">{{ competitor_scores.images }}%</td>
-                        </tr>
-                        <tr>
-                            <td>Quality of Images</td>
-                            <td>
-                                <ul>
-                                    {% for improvement in competitor_analysis_result.images.quality_of_images %}
-                                    <li>{{ improvement }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
         <div class="row mt-4">
-            <div class="col-md-12">
-                <h2 class="text-center">Overall Competitor Score</h2>
-                <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: center;">
-                    <canvas id="competitorScoreGauge"></canvas>
-                    <p style="font-size: 18px; margin-top: 10px;">
-                        Competitor Score: <span id="competitorScoreText">{{ competitor_score }}</span>%
-                    </p>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Gain
+                    </div>
+                    <div class="card-body">
+                        <!-- Add content for Gain here -->
+                        <ul>
+                            {% for gain in competitor_analysis_result.gain %}
+                            <li>{{ gain }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Pain
+                    </div>
+                    <div class="card-body">
+                        <!-- Add content for Pain here -->
+                        <ul>
+                            {% for pain in competitor_analysis_result.pain %}
+                            <li>{{ pain }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

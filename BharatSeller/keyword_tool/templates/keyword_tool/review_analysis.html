@@ -11,9 +11,6 @@
                 <div class="form-group">
                     {{ form.identifier }}
                 </div>
-                <div class="form-group">
-                    {{ form.review_text }}
-                </div>
                 <button type="submit" class="btn btn-primary">Analyze</button>
             </form>
         </div>
@@ -29,10 +26,10 @@
         {% endif %}
         {% if analysis_result %}
         <h2 class="text-center">Review Sentiment Analysis</h2>
-        <div id="plotly-chart">{{ analysis_result.chart|safe }}</div> <!-- Ensure the chart div has an id -->
+        <div id="plotly-chart"></div> <!-- Ensure the chart div has an id -->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                const chartData = {{ analysis_result.chart|safe }};
+                const chartData = JSON.parse('{{ analysis_result.chart_data|escapejs }}');
                 if (chartData && chartData.data && chartData.layout) {
                     Plotly.newPlot('plotly-chart', chartData.data, chartData.layout);
                 } else {
@@ -55,6 +52,16 @@
                 <div id="review-list" style="max-height: 400px; overflow-y: scroll;">
                     <!-- Reviews will be dynamically updated here -->
                 </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h3>AI-Powered Analysis</h3>
+                <ul>
+                    {% for point in analysis_result.analysis_points %}
+                    <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         <script>

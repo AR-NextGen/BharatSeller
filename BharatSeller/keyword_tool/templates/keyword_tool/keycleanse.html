@@ -42,22 +42,22 @@
             <!-- Add the following lines -->
             <button type="button" class="btn btn-primary" id="export-to-listing-maker">Export to Listing maker</button>
             <!-- End of added lines -->
-            <div id="keyword-optimization-content">
-                <!-- Existing content of the Keyword Optimization Tool -->
+            <div id="keycleanse-content">
+                <!-- Existing content of the KeyCleanse Tool -->
             </div>
         </div>
     </div>
 </div>
 <script>
     document.getElementById('export-to-listing-maker').addEventListener('click', function() {
-        // Get the optimized keywords from the Keyword Optimization Tool
+        // Get the optimized keywords from the KeyCleanse Tool
         const optimizedKeywords = document.getElementById('optimized-keywords').innerText.trim();
         // Redirect to the Listing Maker with the keywords
-        window.location.href = `{% url 'listing_maker' %}?keywords=${encodeURIComponent(optimizedKeywords)}`;
+        window.location.href = `{% url 'listing_craft' %}?keywords=${encodeURIComponent(optimizedKeywords)}`;
     });
 
     function getKeywordsFromOptimizationTool() {
-        // Replace with actual logic to get keywords from the Keyword Optimization Tool
+        // Replace with actual logic to get keywords from the KeyCleanse Tool
         return ['keyword1', 'keyword2', 'keyword3'];
     }
 </script>

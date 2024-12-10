@@ -10,7 +10,7 @@
                     Keywords
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{% url 'listing_maker' %}">
+                    <form method="post" action="{% url 'listing_craft' %}">
                         {% csrf_token %}
                         <div class="form-group">
                             <textarea class="form-control" id="keywords" name="keywords" rows="10" placeholder="Enter keywords, one per line">{{ keywords }}</textarea>
@@ -21,7 +21,7 @@
             </div>
         </div>
         <div class="col-md-9">
-            <div class="btn-group" role="group" aria-label="Listing Maker Options">
+            <div class="btn-group" role="group" aria-label="Listing Craft Options">
                 <button type="button" class="btn btn-primary" id="fetch-existing-listing">Fetch Existing Listing</button>
                 <button type="button" class="btn btn-secondary" id="create-new-listing">Create New Listing</button>
             </div>

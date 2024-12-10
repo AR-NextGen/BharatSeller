@@ -1,43 +1,18 @@
 from django import forms
 from .models import Keyword
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 
-class KeywordForm(forms.ModelForm):
-    class Meta:
-        model = Keyword
-        fields = ['name', 'search_volume', 'difficulty']
-
-
+# Review Analysis Form
 class ReviewAnalysisForm(forms.Form):
     identifier = forms.CharField(
         label='ASIN or URL', 
         max_length=255, 
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL', 'class': 'form-control'})  # Update placeholder and add class
-    )
-    review_text = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'placeholder': 'Enter review text',
-            'class': 'form-control',
-            'rows': 5
-        }),
-        label='Review Text',
-        required=False
+        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL', 'class': 'form-control'})  
     )
 
-from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-
-class RegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
-    class Meta:
-        model = User
-        fields = ["username", "email", "password1", "password2"]
-from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-
+# Register Form
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
@@ -45,52 +20,7 @@ class RegisterForm(UserCreationForm):
         model = User
         fields = ["username", "email", "password1", "password2"]
 
-from django import forms
-
-class ProductSearchForm(forms.Form):
-    name = forms.CharField(max_length=255, required=False)
-    category = forms.CharField(max_length=255, required=False)
-    min_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
-    max_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
-    min_rating = forms.DecimalField(max_digits=3, decimal_places=2, required=False)
-    max_rating = forms.DecimalField(max_digits=3, decimal_places=2, required=False)
-    min_reviews = forms.IntegerField(required=False)
-    max_reviews = forms.IntegerField(required=False)
-    min_sales = forms.IntegerField(required=False)
-    max_sales = forms.IntegerField(required=False)
-
-    from django import forms
-
-class ProductSearchForm(forms.Form):
-    SORT_CHOICES = [
-        ('name', 'Name'),
-        ('price', 'Price'),
-        ('rating', 'Rating'),
-        ('reviews', 'Reviews'),
-        ('sales', 'Sales'),
-    ]
-
-    name = forms.CharField(max_length=255, required=False)
-    category = forms.CharField(max_length=255, required=False)
-    min_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
-    max_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
-    min_rating = forms.DecimalField(max_digits=3, decimal_places=2, required=False)
-    max_rating = forms.DecimalField(max_digits=3, decimal_places=2, required=False)
-    min_reviews = forms.IntegerField(required=False)
-    max_reviews = forms.IntegerField(required=False)
-    min_sales = forms.IntegerField(required=False)
-    max_sales = forms.IntegerField(required=False)
-    sort_by = forms.ChoiceField(choices=SORT_CHOICES, required=False)
-
-
-from django import forms
-
-class SimplifiedProductSearchForm(forms.Form):
-    name = forms.CharField(max_length=255, required=False)
-    category = forms.CharField(max_length=255, required=False)
-
-from django import forms
-
+# Product Explorer Form with Sorting
 CATEGORY_CHOICES = [
     ('Mobiles, Computers', 'Mobiles, Computers'),
     ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
@@ -105,42 +35,17 @@ CATEGORY_CHOICES = [
     ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
 ]
 
-from django import forms
-
-CATEGORY_CHOICES = [
-    ('Mobiles, Computers', 'Mobiles, Computers'),
-    ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
-    ("Men's Fashion", "Men's Fashion"),
-    ("Women's Fashion", "Women's Fashion"),
-    ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
-    ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
-    ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
-    ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
-    ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
-    ('Books', 'Books'),
-    ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
+IMPROVEMENT_CHOICES = [
+    ('', 'Level'),
+    ('Slight', 'Slight'),
+    ('Moderate', 'Moderate'),
+    ('Significant', 'Significant'),
 ]
 
-
-from django import forms
-
-CATEGORY_CHOICES = [
-    ('Mobiles, Computers', 'Mobiles, Computers'),
-    ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
-    ("Men's Fashion", "Men's Fashion"),
-    ("Women's Fashion", "Women's Fashion"),
-    ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
-    ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
-    ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
-    ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
-    ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
-    ('Books', 'Books'),
-    ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
-]
-
-class ProductSearchForm(forms.Form):
+class ProductexplorerForm(forms.Form):
     name = forms.CharField(max_length=255, required=False)
     category = forms.ChoiceField(choices=CATEGORY_CHOICES, required=False)
+    improvements = forms.ChoiceField(choices=IMPROVEMENT_CHOICES, required=False)
     min_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     max_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
     min_rating = forms.DecimalField(max_digits=3, decimal_places=2, required=False)
@@ -149,41 +54,33 @@ class ProductSearchForm(forms.Form):
     max_reviews = forms.IntegerField(required=False)
     min_sales = forms.IntegerField(required=False)
     max_sales = forms.IntegerField(required=False)
-    sort_by = forms.ChoiceField(choices=[
-        ('name', 'Name'),
-        ('price', 'Price'),
-        ('rating', 'Rating'),
-        ('reviews', 'Reviews'),
-        ('sales', 'Sales'),
+    min_revenue = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    max_revenue = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    shipping_size_tier = forms.CharField(max_length=255, required=False)
+    bsr = forms.IntegerField(required=False)
+
+# Simplified Product Explorer Form
+class SimplifiedProductexplorerForm(forms.Form):
+    category = forms.ChoiceField(choices=CATEGORY_CHOICES, required=False)
+    improvements = forms.ChoiceField(choices=IMPROVEMENT_CHOICES, required=False)
+    min_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    max_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    competition = forms.ChoiceField(choices=[
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
     ], required=False)
 
-class SimplifiedProductSearchForm(forms.Form):
-    name = forms.CharField(max_length=255, required=False)
-    category = forms.ChoiceField(choices=CATEGORY_CHOICES, required=False)
+# Keyword Forge Form
+class KeywordForgeForm(forms.ModelForm):
+    keyword = forms.CharField(required=False, label='Keyword Search')
 
-    from django import forms
+    class Meta:
+        model = Keyword
+        fields = ['keyword', 'category']
 
-CATEGORY_CHOICES = [
-    ('Mobiles, Computers', 'Mobiles, Computers'),
-    ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
-    ("Men's Fashion", "Men's Fashion"),
-    ("Women's Fashion", "Women's Fashion"),
-    ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
-    ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
-    ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
-    ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
-    ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
-    ('Books', 'Books'),
-    ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
-]
-
-class KeywordAnalysisForm(forms.Form):
-    keyword = forms.CharField(max_length=255, required=True)
-    category = forms.ChoiceField(choices=CATEGORY_CHOICES, required=True)
-
-from django import forms
-
-class KeywordOptimizationForm(forms.Form):
+# Key Cleanse Form
+class KeyCleanseForm(forms.Form):
     keywords = forms.CharField(widget=forms.Textarea, required=True, help_text="Enter keywords separated by commas or new lines.")
     remove_duplicates = forms.BooleanField(required=False, initial=True)
     maintain_phrases = forms.BooleanField(required=False, initial=True)
@@ -197,25 +94,21 @@ class KeywordOptimizationForm(forms.Form):
     replace_word = forms.CharField(max_length=255, required=False, help_text="Enter a word to replace.")
     replace_with = forms.CharField(max_length=255, required=False, help_text="Enter the replacement word.")
 
-
-# Feild 1 to search ASINs
-from django import forms
-
-class CerebroForm(forms.Form):
+# Spy Glass Form
+class SpyGlassForm(forms.Form):
     asins = forms.CharField(
-        max_length=50,  # 5 ASINs * 10 characters each
+        max_length=50,  
         required=True,
         label='',
         widget=forms.TextInput(attrs={
             'placeholder': 'Enter ASINs',
-            'class': 'form-control form-control-lg asin-input',  # Add custom class for styling
+            'class': 'form-control form-control-lg asin-input',  
             'data-toggle': 'tooltip',
             'title': 'Enter up to 5 ASINs, separated by commas.'
         })
     )
 
-from django import forms
-
+# Fetch Listing Form
 class FetchListingForm(forms.Form):
     asin = forms.CharField(
         max_length=255,
@@ -227,6 +120,7 @@ class FetchListingForm(forms.Form):
         })
     )
 
+# Create Listing Form
 class CreateListingForm(forms.Form):
     title = forms.CharField(
         max_length=255,
@@ -257,23 +151,8 @@ class CreateListingForm(forms.Form):
         })
     )
 
-from django import forms
-
+# Sales Guesstimator Form
 class SalesGuesstimatorForm(forms.Form):
-    CATEGORY_CHOICES = [
-        ('Mobiles, Computers', 'Mobiles, Computers'),
-        ('TV, Appliances, Electronics', 'TV, Appliances, Electronics'),
-        ("Men's Fashion", "Men's Fashion"),
-        ("Women's Fashion", "Women's Fashion"),
-        ('Home, Kitchen, Pets', 'Home, Kitchen, Pets'),
-        ('Beauty, Health, Grocery', 'Beauty, Health, Grocery'),
-        ('Sports, Fitness, Bags, Luggage', 'Sports, Fitness, Bags, Luggage'),
-        ("Toys, Baby Products, Kids' Fashion", "Toys, Baby Products, Kids' Fashion"),
-        ('Car, Motorbike, Industrial', 'Car, Motorbike, Industrial'),
-        ('Books', 'Books'),
-        ('Movies, Music & Video Games', 'Movies, Music & Video Games'),
-    ]
-
     product_asin = forms.CharField(
         max_length=10,
         required=False,
@@ -292,18 +171,17 @@ class SalesGuesstimatorForm(forms.Form):
         })
     )
 
-from django import forms
-
+# Listing Booster Form
 class ListingBoosterForm(forms.Form):
     main_listing = forms.CharField(
         label='Main Listing', 
         max_length=255, 
         required=True,
-        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL'})  # Add placeholder
+        widget=forms.TextInput(attrs={'placeholder': 'Enter ASIN or URL'})  
     )
     competitor_listing = forms.CharField(
         label='Competitor Listing', 
         max_length=255, 
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': "Enter Competitor's ASIN or URL"})  # Add placeholder
+        widget=forms.TextInput(attrs={'placeholder': "Enter Competitor's ASIN or URL"})  
     )
