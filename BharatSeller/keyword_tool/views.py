@@ -84,6 +84,7 @@ from textblob import TextBlob
 from collections import Counter
 import json
 from .forms import ListingBoosterForm
+from .amazon_scraper import get_all_reviews_selenium
 
 def review_analysis(request):
     analysis_result = None
@@ -101,13 +102,15 @@ def review_analysis(request):
 
             if identifier:
                 # Fetch reviews based on ASIN (placeholder implementation)
-                reviews = get_reviews(identifier)
+                reviews = get_all_reviews_selenium(f"https://www.amazon.in/product-reviews/{identifier}")  # Updated to use get_reviews_selenium function
+                print(f"Fetched reviews: {reviews}")  # Add this line for debugging
                 if not reviews:
                     error_message = "Incorrect ASIN or URL. Please enter a correct ASIN or URL."
 
             if reviews:
                 for review in reviews:
                     content = review['content']
+                    print(f"Processing review: {content}")  # Add this line for debugging
 
                     # Extract phrases and update frequencies
                     words = re.findall(r'\b\w+\b', content.lower())
@@ -175,27 +178,30 @@ def get_reviews(identifier):
         if match:
             asin = match.group(1)
         else:
+            print("No ASIN found in URL")  # Add this line for debugging
             return []
-    reviews = fetch_reviews_from_amazon(asin)
+    print(f"Extracted ASIN: {asin}")  # Add this line for debugging
+    reviews = get_all_reviews(f"https://www.amazon.in/product-reviews/{asin}")  # Updated to use get_all_reviews function
+    print(f"Fetched reviews from get_all_reviews: {reviews}")  # Add this line for debugging
     return reviews
 
-def fetch_reviews_from_amazon(asin):
-    # Sample data for testing
-    if asin == "B0BPCNSF83":
-        return [
-            {'title': 'Great product', 'content': 'I really liked this product. It works as expected. Great value for money.', 'rating': 5},
-            {'title': 'Not bad', 'content': 'The product is okay, but could be better. Good for the price.', 'rating': 3},
-            {'title': 'Terrible', 'content': 'I did not like this product at all. Poor quality and not worth the money.', 'rating': 1},
-            {'title': 'Excellent', 'content': 'Excellent product. Highly recommend it. Great quality and value.', 'rating': 5},
-            {'title': 'Average', 'content': 'The product is average. Not too good, not too bad. Just okay.', 'rating': 3},
-            {'title': 'Bad experience', 'content': 'Had a bad experience with this product. Not as described. Poor performance.', 'rating': 2},
-            {'title': 'Fantastic', 'content': 'Fantastic product! Works like a charm. Great purchase.', 'rating': 5},
-            {'title': 'Disappointed', 'content': 'Very disappointed with this product. Not worth the price. Poor build quality.', 'rating': 1},
-            {'title': 'Good value', 'content': 'Good value for money. Decent quality and performance.', 'rating': 4},
-            {'title': 'Satisfied', 'content': 'Satisfied with the product. Meets expectations. Good quality.', 'rating': 4},
-        ]
-    else:
-        return []
+# def fetch_reviews_from_amazon(asin):
+#     # Sample data for testing
+#     if asin == "B0BPCNSF83":
+#         return [
+#             {'title': 'Great product', 'content': 'I really liked this product. It works as expected. Great value for money.', 'rating': 5},
+#             {'title': 'Not bad', 'content': 'The product is okay, but could be better. Good for the price.', 'rating': 3},
+#             {'title': 'Terrible', 'content': 'I did not like this product at all. Poor quality and not worth the money.', 'rating': 1},
+#             {'title': 'Excellent', 'content': 'Excellent product. Highly recommend it. Great quality and value.', 'rating': 5},
+#             {'title': 'Average', 'content': 'The product is average. Not too good, not too bad. Just okay.', 'rating': 3},
+#             {'title': 'Bad experience', 'content': 'Had a bad experience with this product. Not as described. Poor performance.', 'rating': 2},
+#             {'title': 'Fantastic', 'content': 'Fantastic product! Works like a charm. Great purchase.', 'rating': 5},
+#             {'title': 'Disappointed', 'content': 'Very disappointed with this product. Not worth the price. Poor build quality.', 'rating': 1},
+#             {'title': 'Good value', 'content': 'Good value for money. Decent quality and performance.', 'rating': 4},
+#             {'title': 'Satisfied', 'content': 'Satisfied with the product. Meets expectations. Good quality.', 'rating': 4},
+#         ]
+#     else:
+#         return []
 
 def generate_analysis_points(reviews):
     # Placeholder function to simulate AI-powered analysis
@@ -260,9 +266,6 @@ def product_explorer(request):
             if form.cleaned_data['max_sales']:
                 print("Max Sales:", form.cleaned_data['max_sales'])
                 products = products.filter(sales__lte=form.cleaned_data['max_sales'])
-            if form.cleaned_data['sort_by']:
-                print("Sort By:", form.cleaned_data['sort_by'])
-                products = products.order_by(form.cleaned_data['sort_by'])
         else:
             print("Advanced form is not valid")
     else:
@@ -695,3 +698,24 @@ def analyze_listing(listing):
     overall_score = (scores['title'] + scores['description'] + scores['pricing'] + scores['images']) / 4
 
     return improvements, overall_score, scores
+
+def scrape_reviews(request):
+    if request.method == 'POST':
+        product_url = request.POST.get('product_url')
+        reviews = get_all_reviews(product_url)
+        return JsonResponse({'reviews': reviews})
+    return render(request, 'keyword_tool/scrape_reviews.html')
+
+from textblob import TextBlob
+
+def analyze_reviews(reviews):
+    sentiments = [TextBlob(review).sentiment.polarity for review in reviews]
+    return sentiments
+
+def scrape_reviews(request):
+    if request.method == 'POST':
+        product_url = request.POST.get('product_url')
+        reviews = get_all_reviews(product_url)
+        sentiments = analyze_reviews(reviews)
+        return JsonResponse({'reviews': reviews, 'sentiments': sentiments})
+    return render(request, 'keyword_tool/scrape_reviews.html')

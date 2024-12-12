@@ -22,4 +22,5 @@ urlpatterns = [
     path('fetch_listing/', views.fetch_listing, name='fetch_listing'),
     path('create_listing/', views.create_listing, name='create_listing'),
     path('sales_guesstimator/', views.sales_guesstimator, name='sales_guesstimator'),
+    path('scrape_reviews/', views.scrape_reviews, name='scrape_reviews'),
 ]
