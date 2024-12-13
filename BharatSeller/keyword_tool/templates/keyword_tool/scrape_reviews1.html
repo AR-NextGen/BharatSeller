@@ -1,0 +1,88 @@
+{% extends 'keyword_tool/base.html' %}
+
+{% block content %}
+<h1>Scrape Amazon Reviews</h1>
+<form method="post" id="scrape-reviews-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="product_url">Product URL</label>
+        <input type="text" name="product_url" id="product_url" class="form-control" placeholder="Enter Amazon product URL">
+    </div>
+    <button type="submit" class="btn btn-primary">Scrape Reviews</button>
+</form>
+
+<div id="reviews-results">
+    <!-- Reviews and sentiments will be displayed here -->
+</div>
+
+<script>
+    let productUrl = document.getElementById('product_url').value.trim();
+        console.log(`Entered URL: ${productUrl}`); // Debugging
+        const validBaseUrl = "https://www.amazon.in/";
+        const validPath = "product-reviews/";
+
+        // if (productUrl.startsWith(validBaseUrl) && productUrl.includes(validPath)) {
+        //     // Extract the portion starting with the validPath
+        //     const pathIndex = productUrl.indexOf(validPath);
+        //     const fixedUrl = validBaseUrl + productUrl.substring(pathIndex);
+        //     console.log(`Constructed URL for scraping: ${fixedUrl}`);
+        // } else {
+        //     alert('Please enter a valid Amazon product reviews URL.');
+        //     console.error('Invalid URL entered:', productUrl);
+        // }
+
+        if (productUrl.startsWith(validBaseUrl) && productUrl.includes(validPath)) {
+            // Extract the exact path after the base URL
+            const pathIndex = productUrl.indexOf(validPath);
+            const extractedPath = productUrl.substring(pathIndex);
+            
+            // Construct fixedUrl only if needed
+            const fixedUrl = `${validBaseUrl}${extractedPath}`;
+            
+            console.log(`Constructed URL for scraping: ${fixedUrl}`);
+        } else {
+            alert('Please enter a valid Amazon product reviews URL.');
+            console.error('Invalid URL entered:', productUrl);
+        }
+
+        console.log(`Submitting URL to backend: ${productUrl}`);
+        const formData = new FormData();
+        formData.append('product_url', productUrl);
+        console.log(`FormData contents: ${Array.from(formData.entries())}`); // Debugging
+
+        fetch("{% url 'scrape_reviews' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(async (response) => {
+            if (!response.ok || response.headers.get('content-type') !== 'application/json') {
+                console.error('Unexpected response:', response.status, response.statusText);
+                const text = await response.text();
+                console.error('Response body:', text); // Log the entire response body
+                throw new Error('Unexpected response type received.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Reviews fetched successfully:', data.reviews); // Debugging
+            const resultsDiv = document.getElementById('reviews-results');
+            if (!data.reviews || data.reviews.length === 0) {
+                resultsDiv.innerHTML = '<p>No reviews found for the given URL.</p>';
+                return;
+            }
+            let resultsHtml = '<h2>Scraped Reviews</h2><ul>';
+            data.reviews.forEach((review, index) => {
+                resultsHtml += `<li>${review} - Sentiment: ${data.sentiments[index]}</li>`;
+            });
+            resultsHtml += '</ul>';
+            resultsDiv.innerHTML = resultsHtml;
+        })
+        .catch(error => {
+            console.error('Error in fetch:', error);
+            document.getElementById('reviews-results').innerHTML = '<p>An error occurred while fetching reviews. Please try again.</p>';
+    });        
+</script>
+{% endblock %}

@@ -102,7 +102,7 @@ def review_analysis(request):
 
             if identifier:
                 # Fetch reviews based on ASIN (placeholder implementation)
-                reviews = get_all_reviews_selenium(f"https://www.amazon.in/product-reviews/{identifier}")  # Updated to use get_reviews_selenium function
+                reviews = get_all_reviews_selenium(f"{identifier}")  # Updated to use get_reviews_selenium function
                 print(f"Fetched reviews: {reviews}")  # Add this line for debugging
                 if not reviews:
                     error_message = "Incorrect ASIN or URL. Please enter a correct ASIN or URL."
@@ -181,8 +181,8 @@ def get_reviews(identifier):
             print("No ASIN found in URL")  # Add this line for debugging
             return []
     print(f"Extracted ASIN: {asin}")  # Add this line for debugging
-    reviews = get_all_reviews(f"https://www.amazon.in/product-reviews/{asin}")  # Updated to use get_all_reviews function
-    print(f"Fetched reviews from get_all_reviews: {reviews}")  # Add this line for debugging
+    reviews = get_all_reviews_selenium(f"https://www.amazon.in/product-reviews/{asin}")  # Updated to use get_all_reviews function
+    print(f"Fetched reviews from get_all_reviews_selenium: {reviews}")  # Add this line for debugging
     return reviews
 
 # def fetch_reviews_from_amazon(asin):
@@ -699,13 +699,6 @@ def analyze_listing(listing):
 
     return improvements, overall_score, scores
 
-def scrape_reviews(request):
-    if request.method == 'POST':
-        product_url = request.POST.get('product_url')
-        reviews = get_all_reviews(product_url)
-        return JsonResponse({'reviews': reviews})
-    return render(request, 'keyword_tool/scrape_reviews.html')
-
 from textblob import TextBlob
 
 def analyze_reviews(reviews):
@@ -713,9 +706,30 @@ def analyze_reviews(reviews):
     return sentiments
 
 def scrape_reviews(request):
-    if request.method == 'POST':
-        product_url = request.POST.get('product_url')
-        reviews = get_all_reviews(product_url)
-        sentiments = analyze_reviews(reviews)
-        return JsonResponse({'reviews': reviews, 'sentiments': sentiments})
-    return render(request, 'keyword_tool/scrape_reviews.html')
+    try:
+        if request.method == 'POST':
+            product_url = request.POST.get('product_url')
+            print(f"Raw product_url from request: {product_url}")  # Debugging
+            
+            # Check for redundant "product-reviews/" prefix and remove if found
+            redundant_prefix = "https://www.amazon.in/product-reviews/"
+            if product_url.startswith(redundant_prefix):
+                product_url = product_url[len(redundant_prefix):]
+                print(f"Removed redundant prefix: {product_url}")  # Debugging
+
+            reviews = get_all_reviews_selenium(product_url)
+            if not reviews:
+                print(f"No reviews fetched for URL: {product_url}")  # Debugging
+                return JsonResponse({'error': 'No reviews found for the given URL.'}, status=404)
+
+            sentiments = analyze_reviews(reviews)
+            return JsonResponse({'reviews': reviews, 'sentiments': sentiments})
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")  # Logs the exception to terminal
+        return JsonResponse({'error': 'An unexpected error occurred. Please check the logs.'}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
+

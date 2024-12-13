@@ -92,3 +92,6 @@ LOGIN_REDIRECT_URL = 'home'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+DEBUG_PROPAGATE_EXCEPTIONS = True  # Ensure debugging logs all exceptions
+

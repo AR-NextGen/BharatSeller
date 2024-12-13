@@ -24,3 +24,5 @@ urlpatterns = [
     path('sales_guesstimator/', views.sales_guesstimator, name='sales_guesstimator'),
     path('scrape_reviews/', views.scrape_reviews, name='scrape_reviews'),
 ]
+
+handler500 = 'my_app.views.custom_server_error'
