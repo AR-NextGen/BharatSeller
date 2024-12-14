@@ -1,0 +1,48 @@
+Sat Dec 14 16:29:04 2024: Message: invalid cookie domain
+  (Session info: chrome=131.0.6778.109)
+Stacktrace:
+	GetHandleVerifier [0x010734A3+25059]
+	(No symbol) [0x00FFCEA4]
+	(No symbol) [0x00EDBD39]
+	(No symbol) [0x00F6B5FC]
+	(No symbol) [0x00F41EFC]
+	(No symbol) [0x00F5B51E]
+	(No symbol) [0x00F41C96]
+	(No symbol) [0x00F13FAC]
+	(No symbol) [0x00F14F3D]
+	GetHandleVerifier [0x01365613+3113811]
+	GetHandleVerifier [0x0137A2DA+3199002]
+	GetHandleVerifier [0x01372AB2+3168242]
+	GetHandleVerifier [0x01113310+680016]
+	(No symbol) [0x010057ED]
+	(No symbol) [0x01002A98]
+	(No symbol) [0x01002C35]
+	(No symbol) [0x00FF5890]
+	BaseThreadInitThunk [0x75BCFCC9+25]
+	RtlGetAppContainerNamedObjectPath [0x76FA809E+286]
+	RtlGetAppContainerNamedObjectPath [0x76FA806E+238]
+
+Sat Dec 14 16:32:01 2024: Message: invalid cookie domain
+  (Session info: chrome=131.0.6778.109)
+Stacktrace:
+	GetHandleVerifier [0x010734A3+25059]
+	(No symbol) [0x00FFCEA4]
+	(No symbol) [0x00EDBD39]
+	(No symbol) [0x00F6B5FC]
+	(No symbol) [0x00F41EFC]
+	(No symbol) [0x00F5B51E]
+	(No symbol) [0x00F41C96]
+	(No symbol) [0x00F13FAC]
+	(No symbol) [0x00F14F3D]
+	GetHandleVerifier [0x01365613+3113811]
+	GetHandleVerifier [0x0137A2DA+3199002]
+	GetHandleVerifier [0x01372AB2+3168242]
+	GetHandleVerifier [0x01113310+680016]
+	(No symbol) [0x010057ED]
+	(No symbol) [0x01002A98]
+	(No symbol) [0x01002C35]
+	(No symbol) [0x00FF5890]
+	BaseThreadInitThunk [0x75BCFCC9+25]
+	RtlGetAppContainerNamedObjectPath [0x76FA809E+286]
+	RtlGetAppContainerNamedObjectPath [0x76FA806E+238]
+

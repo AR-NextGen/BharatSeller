@@ -6,6 +6,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
+import random
+import browser_cookie3
+import json
+
+def load_cookies():
+    # Fetch cookies from the browser
+    cookies = browser_cookie3.chrome(domain_name='amazon.in')
+
+    # Convert to Selenium-compatible format
+    selenium_cookies = [{'name': c.name, 'value': c.value, 'domain': c.domain} for c in cookies]
+    return selenium_cookies
 
 def get_reviews_selenium(product_url):
     # Configure Selenium WebDriver options
@@ -16,13 +27,22 @@ def get_reviews_selenium(product_url):
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    
     print(f"URL being scraped: {product_url}")  # Debugging output
     
+    reviews = []  # Initialize reviews variable
     try:
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.get("https://www.amazon.in")
+
+        # Add cookies to the browser session
+        cookies = load_cookies()
+        for cookie in cookies:
+            driver.add_cookie(cookie)
+        
+        # Navigate to the product URL
         driver.get(product_url)
-        time.sleep(5)  # Allow page to load
-        reviews = []
+        time.sleep(random.uniform(2, 5))
 
         while True:
             try:
@@ -63,14 +83,16 @@ def get_reviews_selenium(product_url):
                 driver.execute_script("arguments[0].click();", next_button)
                 WebDriverWait(driver, 10).until(EC.staleness_of(next_button))
             except Exception as e:
-                print(f"Error clicking next button: {e}")
+                print(f"Pagination ended or error clicking next button: {e}")
                 break
     except Exception as e:
         print(f"Error initializing browser: {e}")
     finally:
-        driver.quit()
+        if 'driver' in locals():
+            driver.quit()
         print(f"Fetched reviews on page: {reviews}")  # Debugging output
         return reviews
+
 
 def get_all_reviews_selenium(product_url):
     reviews = []
@@ -92,6 +114,7 @@ def get_all_reviews_selenium(product_url):
 
         new_reviews = get_reviews_selenium(url)
         if not new_reviews:
+            print("No new reviews found. Exiting loop.")
             break  # Stop if no reviews found
         reviews.extend(new_reviews)
         page += 1
