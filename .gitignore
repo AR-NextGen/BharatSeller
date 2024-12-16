@@ -6,6 +6,7 @@ __pycache__/
 *.pyd
 *.exe
 **/node_modules/
+static/node_modules
 
 # Ignore environment files
 .env
