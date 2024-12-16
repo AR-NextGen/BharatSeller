@@ -16,7 +16,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "api",
     "keyword_tool",  # Ensure this is included to load templates from the app directory
 ]
 
