@@ -7,26 +7,44 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 import random
-import browser_cookie3
-import json
 
-def load_cookies():
+def amazon_login(driver, username, password):
+    """
+    Automates login to Amazon using provided credentials.
+    """
     try:
-        # Fetch cookies from the browser
-        cookies = browser_cookie3.chrome(domain_name='amazon.in')
-        # Debug: Print loaded cookies
-        print(f"Loaded cookies: {[{'name': c.name, 'value': c.value, 'domain': c.domain} for c in cookies]}")
-        
-        # Convert to Selenium-compatible format
-        selenium_cookies = [{'name': c.name, 'value': c.value, 'domain': c.domain} for c in cookies]
-        return selenium_cookies
+        print("Starting Amazon login...")
+
+        # Navigate to Amazon's login page
+        driver.get("https://www.amazon.in/ap/signin")
+
+        # Enter email/phone number
+        email_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "ap_email"))
+        )
+        email_field.send_keys(username)
+        driver.find_element(By.ID, "continue").click()
+
+        # Enter password
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "ap_password"))
+        )
+        password_field.send_keys(password)
+        driver.find_element(By.ID, "signInSubmit").click()
+
+        # Wait until login completes (check for the Amazon logo)
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "nav-logo"))
+        )
+        print("Amazon login successful!")
     except Exception as e:
-        print(f"Error loading cookies: {e}")
-        return []
+        print(f"Error during Amazon login: {e}")
+        raise
 
-
-def get_reviews_selenium(product_url):
-    # Configure Selenium WebDriver options
+def get_reviews_selenium(product_url, username, password):
+    """
+    Scrapes reviews from Amazon using Selenium, handling login and pagination.
+    """
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-headless')  # Ensure visibility
     options.add_argument('--no-sandbox')
@@ -34,104 +52,91 @@ def get_reviews_selenium(product_url):
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-software-rasterizer')
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-    
-    print(f"URL being scraped: {product_url}")  # Debugging output
-    
-    reviews = []  # Initialize reviews variable
+
+    reviews = []
     try:
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get("https://www.amazon.in")
 
-        # Add cookies to the browser session
-        cookies = load_cookies()
-        for cookie in cookies:
-            driver.add_cookie(cookie)
-        
-        # Navigate to the product URL
+        # Log in to Amazon
+        amazon_login(driver, username, password)
+
+        # Navigate to the product reviews page
         driver.get(product_url)
         time.sleep(random.uniform(2, 5))
 
-        # Check if login prompt appears
-        if "signin" in driver.current_url.lower():
-            print("Login required: Cookies did not work.")
-            # Optionally handle login here or exit
-            return []
-
-        # Scrape reviews (existing logic)
         while True:
             try:
-                # Wait for the reviews to load
-                WebDriverWait(driver, 30).until(
+                # Wait for reviews to load
+                WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, '[data-hook="review"]'))
                 )
-            except Exception as e:
-                print(f"Error waiting for reviews to load: {e}")
-                break
-            
-            # Parse reviews using BeautifulSoup
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-            # Detect CAPTCHA
-            if "captcha" in soup.text.lower():
-                print("CAPTCHA detected. Solve it manually in the browser.")
-                break
+                # Detect CAPTCHA
+                if "captcha" in soup.text.lower():
+                    print("CAPTCHA detected. Solve it manually in the browser.")
+                    break
 
-            review_divs = soup.find_all('div', {'data-hook': 'review'})
-            print(f"Current URL: {driver.current_url}")  # Debugging output
-            print(f"Found {len(review_divs)} review divs")  # Debugging output
-            
-            # Extract review content
-            for review in review_divs:
-                try:
+                # Extract reviews
+                review_divs = soup.find_all('div', {'data-hook': 'review'})
+                for review in review_divs:
                     review_body = review.find('span', {'data-hook': 'review-body'})
                     if review_body:
-                        review_text = review_body.text.strip()
-                        reviews.append({'content': review_text})
-                except Exception as e:
-                    print(f"Error extracting review: {e}")
-            
-            # Attempt to click the "Next" button for pagination
-            try:
-                next_button = driver.find_element(By.CSS_SELECTOR, 'li.a-last a')
-                print(f"Found next button: {next_button}")  # Debugging output
-                driver.execute_script("arguments[0].click();", next_button)
-                WebDriverWait(driver, 10).until(EC.staleness_of(next_button))
+                        reviews.append({'content': review_body.text.strip()})
+
+                # Click the "Next" button for pagination
+                try:
+                    next_button = driver.find_element(By.CSS_SELECTOR, 'li.a-last a')
+                    driver.execute_script("arguments[0].click();", next_button)
+                    WebDriverWait(driver, 10).until(EC.staleness_of(next_button))
+                except Exception:
+                    print("No more pages.")
+                    break
             except Exception as e:
-                print(f"Pagination ended or error clicking next button: {e}")
+                print(f"Error scraping reviews: {e}")
                 break
-    except Exception as e:
-        print(f"Error initializing browser: {e}")
     finally:
         if 'driver' in locals():
             driver.quit()
-        print(f"Fetched reviews on page: {reviews}")  # Debugging output
         return reviews
 
-
-def get_all_reviews_selenium(product_url):
+def get_all_reviews_selenium(product_url, username, password):
+    """
+    Handles pagination to fetch all reviews from Amazon.
+    """
     reviews = []
     page = 1
-    print(f"Input URL: {product_url}")  # Debugging output
+    print(f"Input URL: {product_url}")
 
-    # Ensure URL is valid and does not duplicate "product-reviews"
+    # Validate and construct the base URL for pagination
     if "product-reviews/" not in product_url:
         print("Invalid product URL format. Ensure it includes 'product-reviews/'.")
         return []
-    
-    # Handle pagination without duplicating "pageNumber"
-    base_url = product_url.split("&pageNumber=")[0]  # Remove existing pageNumber if any
-    print(f"Base URL: {base_url}")  # Debugging output
+
+    base_url = product_url.split("&pageNumber=")[0]
+    print(f"Base URL: {base_url}")
 
     while True:
-        url = f"{base_url}&pageNumber={page}"  # Append pagination parameter
+        url = f"{base_url}&pageNumber={page}"
         print(f"Constructed URL for scraping: {url}")
 
-        new_reviews = get_reviews_selenium(url)
+        new_reviews = get_reviews_selenium(url, username, password)
         if not new_reviews:
             print("No new reviews found. Exiting loop.")
-            break  # Stop if no reviews found
+            break
+
         reviews.extend(new_reviews)
         page += 1
 
     print(f"All fetched reviews: {len(reviews)}")
     return reviews
+
+if __name__ == "__main__":
+    product_url = input("Enter the product reviews URL: ")
+    username = input("Enter your Amazon email: ")
+    password = input("Enter your Amazon password: ")
+
+    all_reviews = get_all_reviews_selenium(product_url, username, password)
+    print(f"Fetched {len(all_reviews)} reviews:")
+    for review in all_reviews:
+        print(review['content'])
