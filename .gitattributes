@@ -1,0 +1,17 @@
+# Enforce LF for Python scripts
+*.py text eol=lf
+
+# Enforce LF for JSON files
+*.json text eol=lf
+
+# No line-ending conversion for binary files
+*.db binary
+*.sqlite3 binary
+*.ico binary
+*.gif binary
+*.png binary
+
+# Enforce LF for HTML, CSS, and JavaScript
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf

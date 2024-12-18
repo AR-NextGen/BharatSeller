@@ -8,6 +8,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CONCURRENT_REQUESTS = 2
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -70,6 +72,25 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Enable the Rotating Proxy Middleware
+DOWNLOADER_MIDDLEWARES = {
+    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
+    'amazon_scraper.middlewares.SeleniumMiddleware': 543,
+}
+
+
+# List of proxy servers
+ROTATING_PROXY_LIST = [
+    "http://proxy1:port",
+    "http://proxy2:port",
+    "http://proxy3:port",
+]
+
+# Other Proxy Settings
+ROTATING_PROXY_PAGE_RETRY_TIMES = 5
+
 
 LANGUAGE_CODE = 'en-us'
 
