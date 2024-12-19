@@ -106,3 +106,9 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = True
 DOWNLOAD_DELAY = 3
 
+FEEDS = {
+    'C:/Users/admin/Documents/Coding/BharatSeller/output/products.csv': {
+        'format': 'csv',
+        'overwrite': True
+    }
+}

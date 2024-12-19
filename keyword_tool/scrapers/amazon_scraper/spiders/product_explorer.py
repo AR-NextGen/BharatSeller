@@ -46,6 +46,8 @@ class ProductExplorerSpider(scrapy.Spider):
         chrome_options.add_argument("--headless")  # Run in headless mode
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument('--disable-application-cache')
+        chrome_options.add_argument('--disable-cache')
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
@@ -80,20 +82,36 @@ class ProductExplorerSpider(scrapy.Spider):
                 self.logger.info(f"Scraped Product: Title={title}, Price={price}, Rating={rating}, ASIN={asin}")
                 
                 yield {
-                    'title': title.strip() if title else 'N/A',
-                    'price': price.strip() if price else 'N/A',
-                    'rating': rating.strip() if rating else 'N/A',
-                    'asin': asin,
-                    'product_link': product_link
+                    'Product': title.strip() if title else 'N/A',
+                    'Price': price.strip() if price else 'N/A',
+                    'Rating': rating.strip() if rating else 'N/A',
+                    'Monthly Sales': '',  # Placeholder
+                    'Monthly Revenue': '',  # Placeholder
+                    'Shipping Size Tier': '',  # Placeholder
+                    'BSR': '',  # Placeholder
+                    'Details': product_link  # Using product link for Details column
                 }
+        # Check for the "Next" button and follow the link
+            next_page = sel.css('a.s-pagination-next::attr(href)').get()
+            if next_page:
+                next_page_url = response.urljoin(next_page)
+                self.logger.info(f"Following pagination to: {next_page_url}")
+                yield scrapy.Request(next_page_url, callback=self.parse)
+            else:
+                self.logger.info("No more pages to scrape.")
         except Exception as e:
             self.logger.error(f"Error during parsing: {e}")
 
     def closed(self, reason):
-        # Log the reason for spider closure
+    # Log the reason for spider closure
         self.logger.info(f"Spider closed because: {reason}")
         self.logger.info("Closing Selenium WebDriver.")
         try:
             self.driver.quit()
+            # Explicitly delete the temporary directory created by the undetected_chromedriver
+            import shutil
+            temp_profile_dir = self.driver.capabilities.get('chrome', {}).get('userDataDir')
+            if temp_profile_dir:
+                shutil.rmtree(temp_profile_dir, ignore_errors=True)
         except Exception as e:
             self.logger.error(f"Error while closing WebDriver: {e}")
